@@ -5,6 +5,7 @@ package tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * @author jojllman
@@ -27,14 +28,24 @@ public interface IDeviceProfile {
 		None,TLS,SSL,DTLS
 	}
 	
-	public boolean setName();
-	public boolean setDataExchangeProtocol();
-	public boolean setDataExchangeProtocolVersion();
-	public boolean setCommunicationTechnology();
+	public enum DeviceType {
+		Acuator, Sensor
+	}
+	
+	public boolean setName(String name);
+	public boolean setDataExchangeProtocol(DataExchangeProtocol protocol);
+	public boolean setDataExchangeProtocolVersion(String version);
+	public boolean setCommunicationTechnology(CommunicationTechnology tech);
+	public boolean setDescription(String description);
+	public boolean setType(DeviceType type);
+	public boolean setUUID(UUID uuid);
 	public String getName();
-	public String getDataExchangeProtocol();
+	public DataExchangeProtocol getDataExchangeProtocol();
 	public String getDataExchangeProtocolVersion();
-	public String getCommunicationTechnology();
+	public CommunicationTechnology getCommunicationTechnology();
+	public boolean getDescription(String description);
+	public DeviceType getType(DeviceType type);
+	public UUID getUUID(UUID uuid);
 	
 	public List<String> getDataTopicNames();
 	public Map<String, String> getAlternativeDataTopicNames();
