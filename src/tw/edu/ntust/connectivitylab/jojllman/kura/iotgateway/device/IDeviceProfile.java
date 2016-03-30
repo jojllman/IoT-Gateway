@@ -7,28 +7,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.json.JSONObject;
+
 /**
  * @author jojllman
  * This is a device profile interface class. It's is used to store device's profile
  *
  */
 public interface IDeviceProfile {
-	public enum DataExchangeProtocol {
+	static public enum DataExchangeProtocol {
 		MQTT,CoAP
 	}
-	public enum CommunicationTechnology {
+	static public enum CommunicationTechnology {
 		BLE,ZigBee,WiFi,Ethernet
 	}
 	
-	public enum QoSLevel {
+	static public enum QoSLevel {
 		None,AtleastOnce,ExactlyOnce
 	}
 	
-	public enum SecurityLevel {
+	static public enum SecurityLevel {
 		None,TLS,SSL,DTLS
 	}
 	
-	public enum DeviceType {
+	static public enum DeviceType {
 		Acuator, Sensor
 	}
 	
@@ -39,13 +41,16 @@ public interface IDeviceProfile {
 	public boolean setDescription(String description);
 	public boolean setType(DeviceType type);
 	public boolean setUUID(UUID uuid);
+	public boolean setPermission(String perm);
 	public String getName();
 	public DataExchangeProtocol getDataExchangeProtocol();
 	public String getDataExchangeProtocolVersion();
 	public CommunicationTechnology getCommunicationTechnology();
-	public boolean getDescription(String description);
-	public DeviceType getType(DeviceType type);
-	public UUID getUUID(UUID uuid);
+	public String getDescription();
+	public DeviceType getType();
+	public UUID getUUID();
+	public String getPermission();
+	public JSONObject getJSONRoot();
 	
 	public List<String> getDataTopicNames();
 	public Map<String, String> getAlternativeDataTopicNames();
