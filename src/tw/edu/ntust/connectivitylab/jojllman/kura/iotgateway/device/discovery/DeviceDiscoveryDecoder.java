@@ -15,32 +15,32 @@ public class DeviceDiscoveryDecoder extends ByteToMessageDecoder {
 	static enum DecodeState {
 			none, decoding
 	}
-	static final int BYTES_LENGTH = 4;
+	static final int BYTES_LENGTH = Integer.SIZE / 8;
 	
 	private DecodeState currentState = DecodeState.none;
 	private int bodyLength = 0;
 	
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
-    	if(currentState == DecodeState.none) {
-	        if (in.readableBytes() < Integer.BYTES) {
-	            return;
-	        }
-	        
-	        bodyLength = in.readInt();
-	        currentState = DecodeState.decoding;
-    	}
-    	else {
-    		if (in.readableBytes() < bodyLength) {
-	            return;
-	        }
-    		
-    		String parseString = in.readBytes(bodyLength).toString();
-    		s_logger.debug(parseString);
-    		JSONObject json = new JSONObject(parseString);
-    		out.add(json);
-    		
-    		currentState = DecodeState.none;
-    	}
+	    	if(currentState == DecodeState.none) {
+		        if (in.readableBytes() < (BYTES_LENGTH)) {
+		            return;
+		        }
+		        
+		        bodyLength = in.readInt();
+		        currentState = DecodeState.decoding;
+	    	}
+	    	else {
+	    		if (in.readableBytes() < bodyLength) {
+		            return;
+		        }
+	    		
+	    		String parseString = in.readBytes(bodyLength).toString();
+	    		s_logger.debug(parseString);
+	    		JSONObject json = new JSONObject(parseString);
+	    		out.add(json);
+	    		
+	    		currentState = DecodeState.none;
+	    	}
     }
 }
