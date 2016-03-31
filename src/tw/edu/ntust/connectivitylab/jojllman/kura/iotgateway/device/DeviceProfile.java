@@ -215,6 +215,72 @@ public class DeviceProfile implements IDeviceProfile{
 		
 		return profile;
 	}
+	static public DeviceProfile parseDeviceAdvertisementMessage(JSONObject jsonObject) {
+		DeviceProfile profile = new DeviceProfile();
+		
+		String name = jsonObject.getString("Name");
+		String description = jsonObject.getString("Description");
+		JSONObject deviceMain = jsonObject.getJSONObject("Detail");
+		String type = deviceMain.getString("Type");
+		String uuid = deviceMain.getString("UUID");
+		String perm = deviceMain.getString("Permission");
+		
+		profile.m_jsonRoot = jsonObject;
+		profile.setName(name);
+		profile.setDescription(description);
+		profile.setType(DeviceType.valueOf(type));
+		profile.setUUID(UUID.fromString(uuid));
+		profile.setPermission(perm);
+		
+		JSONArray channels = deviceMain.getJSONArray("Channels");
+		
+		for(int i=0; i<channels.length(); i++) {
+			JSONObject obj = channels.getJSONObject(i);
+			String topic = obj.getString("Topic");
+			String valueType = obj.getString("Type");
+			String valuePermission = obj.getString("Permission");
+			
+			if(valueType.compareToIgnoreCase("Boolean") == 0) {
+				Boolean valueBoolDefault = obj.getBoolean("Default");
+				Channel<Boolean> ch = new Channel<Boolean>(ChannelDataType.Boolean, 
+						topic, 
+						valuePermission, 
+						valueBoolDefault);
+				profile.addChannel(ch);
+			}
+			else if(valueType.compareToIgnoreCase("Integer") == 0) {
+				Integer valueIntegerDefault = obj.getInt("Default");
+				Integer valueIntegerMin = obj.getInt("Min");
+				Integer valueIntegerMax = obj.getInt("Max");
+				Channel<Integer> ch = new Channel<Integer>(ChannelDataType.Integer, 
+						topic, 
+						valuePermission, 
+						valueIntegerDefault, valueIntegerMin, valueIntegerMax);
+				profile.addChannel(ch);
+			}
+			else if(valueType.compareToIgnoreCase("Short") == 0) {
+				Short valueShortDefault = Short.parseShort(obj.getString("Default"));
+				Short valueShortMin = Short.parseShort(obj.getString("Min"));
+				Short valueShortMax = Short.parseShort(obj.getString("Max"));
+				Channel<Short> ch = new Channel<Short>(ChannelDataType.Short, 
+						topic, 
+						valuePermission, 
+						valueShortDefault, valueShortMin, valueShortMax);
+				profile.addChannel(ch);
+			}
+			else if(valueType.compareToIgnoreCase("String") == 0) {
+				String valueString = obj.getString("Default");
+				Channel<String> ch = new Channel<String>(ChannelDataType.String, 
+						topic, 
+						valuePermission, 
+						valueString);
+				profile.addChannel(ch);
+			}
+			
+		}
+		
+		return profile;
+	}
 	
 	private String m_name;
 	private String m_description;

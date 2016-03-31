@@ -2,7 +2,9 @@ package tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,11 +18,15 @@ import org.slf4j.LoggerFactory;
 
 public class DeviceManager {
 	private static final Logger s_logger = LoggerFactory.getLogger(DeviceManager.class);
+	private static DeviceManager instance;
+	public static DeviceManager getInstance() { return instance; }
 	
 	private List<IDeviceProfile> m_deviceProfiles;
+	private Map<Integer, IDeviceProfile> m_pendingProfiles;
 	
 	public DeviceManager(int port) {
 		m_deviceProfiles = new ArrayList<>(); 
+		instance = this;
 	}
 	
 	public List<IDeviceProfile> getDeviceProfiles() {
@@ -34,17 +40,26 @@ public class DeviceManager {
 		s_logger.debug("Insert device profile " + profile);
 	}
 	
-	public void onDeviceConnectRequest() {
-		
+	public void onDeviceJoinRequest(DeviceProfile profile) {
+		//TODO: onDeviceJoin
 	};
 	
-	public void onDeviceConnected(byte[] advert) {
-		DeviceProfile profile = DeviceProfile.parseDeviceAdvertisementMessage(advert);
-		insertDeviceProfile(profile);
+	public void onDeviceConnected(JSONObject json) {
+		DeviceProfile profile = DeviceProfile.parseDeviceAdvertisementMessage(json);
+		onDeviceJoinRequest(profile);
 	};
 	
 	public void onDeviceDisconnected() {
-		
+		//TODO: onDeviceDisconnected
 	};
+	
+	public void onAcceptRequest(boolean accept, int requestID) {
+		IDeviceProfile profile = m_pendingProfiles.get(Integer.valueOf(requestID));
+		
+		if(accept)
+			insertDeviceProfile(profile);
+		
+		m_pendingProfiles.remove(requestID);
+	}
 	
 }
