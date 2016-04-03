@@ -41,7 +41,6 @@ public interface IDeviceProfile {
 	public boolean setDescription(String description);
 	public boolean setType(DeviceType type);
 	public boolean setUUID(UUID uuid);
-	public boolean setPermission(String perm);
 	public String getName();
 	public DataExchangeProtocol getDataExchangeProtocol();
 	public String getDataExchangeProtocolVersion();
@@ -49,8 +48,9 @@ public interface IDeviceProfile {
 	public String getDescription();
 	public DeviceType getType();
 	public UUID getUUID();
-	public String getPermission();
 	public JSONObject getJSONRoot();
+	public boolean setId(String id);
+	public String getId();
 	
 	public List<String> getDataTopicNames();
 	public Map<String, String> getAlternativeDataTopicNames();

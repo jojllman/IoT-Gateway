@@ -1,12 +1,18 @@
 package tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.access.AccessControlManager;
 
 /**
  * 
@@ -23,10 +29,15 @@ public class DeviceManager {
 	
 	private List<IDeviceProfile> m_deviceProfiles;
 	private Map<Integer, IDeviceProfile> m_pendingProfiles;
+	private AccessControlManager m_access;
 	
 	public DeviceManager(int port) {
 		m_deviceProfiles = new ArrayList<>(); 
 		instance = this;
+	}
+	
+	public void setAccessControlManager(AccessControlManager acc) {
+		m_access = acc;
 	}
 	
 	public List<IDeviceProfile> getDeviceProfiles() {
@@ -49,11 +60,24 @@ public class DeviceManager {
 		onDeviceJoinRequest(profile);
 	};
 	
-	public void onDeviceDisconnected() {
-		//TODO: onDeviceDisconnected
+	public void onDeviceDisconnected(IDeviceProfile device) {
+		String id = device.getId();
+		
+		if(m_deviceProfiles.contains(device)) {
+			m_deviceProfiles.remove(device);
+		}
+		
+		Iterator<Entry<Integer, IDeviceProfile>> it = m_pendingProfiles.entrySet().iterator();
+		while(it.hasNext()) {
+			Entry<Integer, IDeviceProfile> entry = it.next();
+			if(entry.getValue().getId().compareTo(id) == 0) {
+				m_pendingProfiles.remove(entry.getKey());
+				break;
+			}
+		}
 	};
 	
-	public void onAcceptRequest(boolean accept, int requestID) {
+	public void onResponseRequest(boolean accept, int requestID) {
 		IDeviceProfile profile = m_pendingProfiles.get(Integer.valueOf(requestID));
 		
 		if(accept)

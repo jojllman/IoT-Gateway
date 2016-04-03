@@ -39,13 +39,7 @@ public class DeviceDiscovery {
 	public void startDiscovery() throws InterruptedException {
 		int port = 7777;
 		channelFuture = bootstrap.bind(port).sync();
-
-		// Wait until the server socket is closed.
-		// In this example, this does not happen, but you can do that to
-		// gracefully
-		// shut down your server.
-		channelFuture.channel().closeFuture().sync();
-		
+			
 		s_logger.debug("Discovery server started.");
 	}
 

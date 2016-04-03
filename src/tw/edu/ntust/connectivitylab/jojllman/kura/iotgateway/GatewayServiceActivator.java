@@ -11,11 +11,13 @@ import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device.discovery.DeviceDiscovery;
+
 public class GatewayServiceActivator {
 	private static final Logger s_logger = LoggerFactory.getLogger(GatewayServiceActivator.class);
-
     private static final String APP_ID = "tw.edu.ntust.connectivitylab.jojllman.kura.GatewayServiceActivator";
     
+    DeviceDiscovery m_deviceDiscovery;
 
     protected void activate(ComponentContext componentContext) {
 
@@ -108,12 +110,20 @@ public class GatewayServiceActivator {
             System.out.println("excep "+me);
             me.printStackTrace();
         }
+        
+        m_deviceDiscovery = new DeviceDiscovery();
+        try {
+        	m_deviceDiscovery.startDiscovery();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
     }
 
     protected void deactivate(ComponentContext componentContext) {
+    	
+    	m_deviceDiscovery.stopDiscovery();
 
         s_logger.info("Bundle " + APP_ID + " has stopped!");
-
     }
     
     protected void update(ComponentContext componentContext) {
