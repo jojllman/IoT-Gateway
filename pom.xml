@@ -54,6 +54,11 @@
 			<artifactId>netty-all</artifactId>
 			<version>4.0.35.Final</version>
 		</dependency>
+		<dependency>
+		    <groupId>com.fathzer</groupId>
+		    <artifactId>javaluator</artifactId>
+		    <version>3.0.1</version>
+		</dependency>
   </dependencies>
   <dependencyManagement>
   	<dependencies>

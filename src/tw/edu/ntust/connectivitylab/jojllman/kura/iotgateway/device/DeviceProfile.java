@@ -1,5 +1,6 @@
 package tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -301,6 +302,10 @@ public class DeviceProfile implements IDeviceProfile{
 	@Override
 	public String getId() {
 		return m_id;
+	}
+	@Override
+	public List<TopicChannel<?>> getChannels() {
+		return new ArrayList<>(m_channleList.values());
 	}
 
 }

@@ -67,4 +67,6 @@ public interface IDeviceProfile {
 	public boolean setControlTopicQoS(String topic, QoSLevel qos);
 	public Map<String, SecurityLevel> getControlTopicSecurities();
 	public boolean setControlTopicSecurity(String topic, SecurityLevel security);
+	
+	public List<TopicChannel<?>> getChannels();
 }
