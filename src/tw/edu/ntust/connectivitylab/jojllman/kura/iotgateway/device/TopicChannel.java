@@ -6,6 +6,9 @@ public class TopicChannel<T> {
 	static public enum ChannelDataType {
 		Boolean, Integer, Short, String
 	}
+	static public enum ChannelMode {
+		r,w,o,rw,ow
+	}
 	
 	private T obj;
 	private T min;
@@ -15,6 +18,9 @@ public class TopicChannel<T> {
 	private String id;
 	private ChannelDataType type;
 	private Permission perm;
+	private ChannelMode mode;
+	private String description;
+	private String url;
 	
 	public TopicChannel(ChannelDataType type, String topic, String perm) {
 		this.type = type;
@@ -59,5 +65,11 @@ public class TopicChannel<T> {
 	public String setAlternativeTopic(String topic) { altTopic = topic; return altTopic; }
 	public String getId() { return id;}
 	public String setId(String id) { this.id = id; return this.id; } 
+	public ChannelMode getMode() { return mode; }
+	public ChannelMode setMode(ChannelMode mode) { this.mode = mode; return this.mode; }
+	public String setDescription(String desc) { this.description = desc; return this.description; }
+	public String getDescription() { return this.description; }
+	public String setURL(String coapURL) { this.url = coapURL; return this.url; }
+	public String getURL() { return this.url; }
 	
 }

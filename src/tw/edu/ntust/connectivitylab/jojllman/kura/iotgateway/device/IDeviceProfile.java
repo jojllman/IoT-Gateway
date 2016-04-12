@@ -16,7 +16,7 @@ import org.json.JSONObject;
  */
 public interface IDeviceProfile {
 	static public enum DataExchangeProtocol {
-		MQTT,CoAP
+		MQTT,COAP
 	}
 	static public enum CommunicationTechnology {
 		BLE,ZigBee,WiFi,Ethernet
@@ -48,6 +48,7 @@ public interface IDeviceProfile {
 	public String getDescription();
 	public DeviceType getType();
 	public UUID getUUID();
+	public boolean setJSONRoot(JSONObject root);
 	public JSONObject getJSONRoot();
 	public boolean setId(String id);
 	public String getId();

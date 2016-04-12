@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.access.AccessControlManager;
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device.TopicChannel.ChannelDataType;
+import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device.TopicChannel.ChannelMode;
 
 public class DeviceProfile implements IDeviceProfile{
 	private static final Logger s_logger = LoggerFactory.getLogger(DeviceProfile.class);
@@ -30,54 +31,61 @@ public class DeviceProfile implements IDeviceProfile{
 		String type = deviceMain.getString("Type");
 		String uuid = deviceMain.getString("UUID");
 		String perm = deviceMain.getString("Permission");
+		String protocol = deviceMain.getString("Protocol");
 		
-		profile.m_jsonRoot = jsonObject;
+		profile.setJSONRoot(jsonObject);
 		profile.setId(AccessControlManager.GetRandomDeviceId());
 		profile.setName(name);
 		profile.setDescription(description);
 		profile.setType(DeviceType.valueOf(type));
 		profile.setUUID(UUID.fromString(uuid));
 		accessControlManager.registerDevicePermission(profile, perm);
+		profile.setDataExchangeProtocol(DataExchangeProtocol.valueOf(protocol));
 		
 		JSONArray channels = deviceMain.getJSONArray("Channels");
 		
 		for(int i=0; i<channels.length(); i++) {
 			JSONObject obj = channels.getJSONObject(i);
+			String url = obj.getString("URL");
 			String topic = obj.getString("Topic");
 			String valueType = obj.getString("Type");
 			String valuePermission = obj.getString("Permission");
+			String valueMode = obj.getString("Mode");
+			String valueDescription = obj.getString("Description");
 			String id = AccessControlManager.GetRandomChannelId();
 			TopicChannel<?> ch = null;
+			ChannelDataType cdt = ChannelDataType.valueOf(valueType);
+			ChannelMode mode = ChannelMode.valueOf(valueMode);
 			
-			if(valueType.compareToIgnoreCase("Boolean") == 0) {
+			if(cdt == ChannelDataType.Boolean) {
 				Boolean valueBoolDefault = obj.getBoolean("Default");
-				ch = new TopicChannel<Boolean>(ChannelDataType.Boolean, 
+				ch = new TopicChannel<Boolean>(cdt, 
 						topic, 
 						valuePermission, 
 						valueBoolDefault);
 			}
-			else if(valueType.compareToIgnoreCase("Integer") == 0) {
+			else if(cdt == ChannelDataType.Integer) {
 				Integer valueIntegerDefault = obj.getInt("Default");
 				Integer valueIntegerMin = obj.getInt("Min");
 				Integer valueIntegerMax = obj.getInt("Max");
-				ch = new TopicChannel<Integer>(ChannelDataType.Integer, 
+				ch = new TopicChannel<Integer>(cdt, 
 						topic, 
 						valuePermission, 
 						valueIntegerDefault, valueIntegerMin, valueIntegerMax);
 			}
-			else if(valueType.compareToIgnoreCase("Short") == 0) {
+			else if(cdt == ChannelDataType.Short) {
 				Short valueShortDefault = Short.parseShort(obj.getString("Default"));
 				Short valueShortMin = Short.parseShort(obj.getString("Min"));
 				Short valueShortMax = Short.parseShort(obj.getString("Max"));
-				ch = new TopicChannel<Short>(ChannelDataType.Short, 
+				ch = new TopicChannel<Short>(cdt, 
 						topic, 
 						valuePermission, 
 						valueShortDefault, valueShortMin, valueShortMax);
 				
 			}
-			else if(valueType.compareToIgnoreCase("String") == 0) {
+			else if(cdt == ChannelDataType.String) {
 				String valueString = obj.getString("Default");
-				ch = new TopicChannel<String>(ChannelDataType.String, 
+				ch = new TopicChannel<String>(cdt, 
 						topic, 
 						valuePermission, 
 						valueString);
@@ -87,7 +95,12 @@ public class DeviceProfile implements IDeviceProfile{
 				s_logger.error("Channel read error!");
 			}
 			else {
+				if(profile.getDataExchangeProtocol() == DataExchangeProtocol.COAP) {
+					ch.setURL(url);
+				}
 				ch.setId(id);
+				ch.setMode(mode);
+				ch.setDescription(valueDescription);
 				profile.addChannel(ch);
 				accessControlManager.registerChanncelPermission(ch, valuePermission);
 			}
@@ -104,6 +117,7 @@ public class DeviceProfile implements IDeviceProfile{
 	private UUID m_uuid;
 	private Map<String, TopicChannel<?>> m_channleList;
 	private JSONObject m_jsonRoot;
+	private DataExchangeProtocol m_protocol;
 	
 	public DeviceProfile() {
 		m_channleList = new HashMap<>();
@@ -124,8 +138,8 @@ public class DeviceProfile implements IDeviceProfile{
 
 	@Override
 	public boolean setDataExchangeProtocol(DataExchangeProtocol protocol) {
-		// TODO Auto-generated method stub
-		return false;
+		this.m_protocol = protocol;
+		return true;
 	}
 
 	@Override
@@ -171,8 +185,7 @@ public class DeviceProfile implements IDeviceProfile{
 
 	@Override
 	public DataExchangeProtocol getDataExchangeProtocol() {
-		// TODO Auto-generated method stub
-		return null;
+		return m_protocol;
 	}
 
 	@Override
@@ -287,9 +300,16 @@ public class DeviceProfile implements IDeviceProfile{
 	}
 
 	@Override
+	public boolean setJSONRoot(JSONObject root) {
+		this.m_jsonRoot = root;
+		return true;
+	}
+	
+	@Override
 	public JSONObject getJSONRoot() {
 		return m_jsonRoot;
 	}
+	
 	@Override
 	public boolean setId(String id) {
 		if(id == null) {
@@ -299,6 +319,7 @@ public class DeviceProfile implements IDeviceProfile{
 		this.m_id = id;
 		return true;
 	}
+	
 	@Override
 	public String getId() {
 		return m_id;
