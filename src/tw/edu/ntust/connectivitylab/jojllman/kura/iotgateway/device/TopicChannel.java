@@ -1,6 +1,7 @@
 package tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device;
 
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.access.Permission;
+import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device.IDeviceProfile.DataExchangeProtocol;
 
 public class TopicChannel<T> {
 	static public enum ChannelDataType {
@@ -9,6 +10,8 @@ public class TopicChannel<T> {
 	static public enum ChannelMode {
 		r,w,o,rw,ow
 	}
+	
+	private IDeviceProfile device;
 	
 	private T obj;
 	private T min;
@@ -71,5 +74,18 @@ public class TopicChannel<T> {
 	public String getDescription() { return this.description; }
 	public String setURL(String coapURL) { this.url = coapURL; return this.url; }
 	public String getURL() { return this.url; }
+	public IDeviceProfile setDevice(IDeviceProfile device) { this.device = device; return this.device; }
+	public IDeviceProfile getDevice() { return this.device; }
 	
+	public boolean initialize() {
+		if(id == null || topic == null)
+			return false;
+		
+		DataExchangeProtocol protocol = device.getDataExchangeProtocol();
+		if(protocol == DataExchangeProtocol.MQTT) {
+			
+		}
+		
+		return true;
+	}
 }

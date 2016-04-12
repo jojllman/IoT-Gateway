@@ -101,6 +101,7 @@ public class DeviceProfile implements IDeviceProfile{
 				ch.setId(id);
 				ch.setMode(mode);
 				ch.setDescription(valueDescription);
+				ch.setDevice(profile);
 				profile.addChannel(ch);
 				accessControlManager.registerChanncelPermission(ch, valuePermission);
 			}
