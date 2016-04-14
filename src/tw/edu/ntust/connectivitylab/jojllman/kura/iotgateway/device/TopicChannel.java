@@ -1,11 +1,19 @@
 package tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device;
 
-import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
+import org.eclipse.paho.client.mqttv3.*;
 
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.access.Permission;
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device.IDeviceProfile.DataExchangeProtocol;
 
-public class TopicChannel<T> implements Runnable {
+import java.util.HashMap;
+
+public class TopicChannel<T> implements Runnable, MqttCallback {
+	private static final Logger s_logger = LoggerFactory.getLogger(TopicChannel.class);
+	private static final String s_serverURL = "tcp://iot.eclipse.org:1883";
+
 	static public enum ChannelDataType {
 		Boolean, Integer, Short, String
 	}
@@ -16,7 +24,7 @@ public class TopicChannel<T> implements Runnable {
 		FireAndForget(0), DeliverAtleastOnce(1),DeliverExactlyOnce(2);
 		private final int mask;
 
-	    private ChannelQoS(int mask)
+	    ChannelQoS(int mask)
 	    {
 	        this.mask = mask;
 	    }
@@ -41,9 +49,10 @@ public class TopicChannel<T> implements Runnable {
 	private String description;
 	private String url;
 	private ChannelQoS qos;
+	private DataExchangeProtocol protocol;
 	
 	private MqttAsyncClient mqttClient;
-	
+	private HashMap<IMqttDeliveryToken, T> mqttDeliverQueue;
 	
 	public TopicChannel(ChannelDataType type, String topic, String perm) {
 		this.type = type;
@@ -96,18 +105,60 @@ public class TopicChannel<T> implements Runnable {
 	public String getURL() { return this.url; }
 	public ChannelQoS setQoS(ChannelQoS qos) { this.qos = qos; return this.qos; }
 	public ChannelQoS getQoS() { return this.qos; }
-	public IDeviceProfile setDevice(IDeviceProfile device) { this.device = device; return this.device; }
+	public IDeviceProfile setDevice(IDeviceProfile device) {
+		this.device = device;
+		protocol = device.getDataExchangeProtocol();
+		if(protocol == DataExchangeProtocol.MQTT) {
+			mqttDeliverQueue = new HashMap<>();
+		}
+		return this.device;
+	}
 	public IDeviceProfile getDevice() { return this.device; }
 	
-	public boolean initialize() {
-		if(id == null || topic == null)
+	public boolean connect() {
+		if(id == null || topic == null || device == null)
 			return false;
-		
-		DataExchangeProtocol protocol = device.getDataExchangeProtocol();
+
 		if(protocol == DataExchangeProtocol.MQTT) {
-			
+			try {
+				DataExchangeProtocol protocol = device.getDataExchangeProtocol();
+				if (protocol == DataExchangeProtocol.MQTT) {
+					mqttClient = new MqttAsyncClient(s_serverURL, this.id, new MemoryPersistence());
+					MqttConnectOptions connOpts = new MqttConnectOptions();
+					connOpts.setCleanSession(true);
+					IMqttToken token = mqttClient.connect(connOpts);
+					token.waitForCompletion(10000);
+					mqttClient.setCallback(this);
+				}
+			} catch (MqttException e) {
+				if (e.getReasonCode() == MqttException.REASON_CODE_CLIENT_TIMEOUT) {
+					s_logger.info("Mqtt timeout, Topic:" + topic);
+				} else {
+					e.printStackTrace();
+				}
+				return false;
+			}
 		}
-		
+		else if(protocol == DataExchangeProtocol.COAP) {
+
+		}
+
+		return true;
+	}
+
+	public boolean disconnect() {
+		if(protocol == DataExchangeProtocol.MQTT) {
+			IMqttToken token;
+			try {
+				token = mqttClient.disconnect(10000);
+				token.waitForCompletion(10000);
+				mqttClient = null;
+			} catch (MqttException e) {
+				e.printStackTrace();
+				return false;
+			}
+		}
+
 		return true;
 	}
 
@@ -115,4 +166,47 @@ public class TopicChannel<T> implements Runnable {
 	public void run() {
 		
 	}
+
+	@Override
+	public void connectionLost(Throwable throwable) {
+		mqttClient = null;
+		s_logger.info("Mqtt connection lost, Topic:" + topic);
+	}
+
+	@Override
+	public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
+		if(topic.compareToIgnoreCase(altTopic) != 0)
+			return;
+
+		T value;
+		switch(type) {
+			case Integer: {
+				value = (T) Integer.valueOf(mqttMessage.getPayload().toString());
+				break;
+			}
+			case Boolean: {
+				value = (T) Boolean.valueOf(mqttMessage.getPayload().toString());
+				break;
+			}
+			case Short: {
+				value = (T) Short.valueOf(mqttMessage.getPayload().toString());
+				break;
+			}
+			case String: {
+				value = (T) mqttMessage.getPayload().toString();
+				break;
+			}
+			default:
+				s_logger.error("ChannelDataType error!");
+				return;
+		}
+
+		obj = value;
+	}
+
+	@Override
+	public void deliveryComplete(IMqttDeliveryToken iMqttDeliveryToken) {
+
+	}
+
 }
