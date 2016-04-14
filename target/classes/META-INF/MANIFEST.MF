@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1460623615259
-Build-Jdk: 1.8.0_74
-Built-By: connectivity
+Bnd-LastModified: 1460653817795
+Build-Jdk: 1.8.0_77
+Built-By: jojllman
 Bundle-ClassPath: .,org.eclipse.paho.client.mqttv3-1.0.2.jar,json-201602
  12.jar,netty-all-4.0.35.Final.jar,javaluator-3.0.1.jar
 Bundle-ManifestVersion: 2
@@ -18,16 +18,16 @@ Embedded-Artifacts: org.eclipse.paho.client.mqttv3-1.0.2.jar;g="org.ecli
  etty";a="netty-all";v="4.0.35.Final",javaluator-3.0.1.jar;g="com.fathze
  r";a="javaluator";v="3.0.1"
 Export-Package: tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.ac
- cess;version="1.0.0";uses:="tw.edu.ntust.connectivitylab.jojllman.kura.
- iotgateway.device",tw.edu.ntust.connectivitylab.jojllman.kura.iotgatewa
- y.device;version="1.0.0";uses:="tw.edu.ntust.connectivitylab.jojllman.k
- ura.iotgateway.access",tw.edu.ntust.connectivitylab.jojllman.kura.iotga
- teway.device.discovery;version="1.0.0";uses:="tw.edu.ntust.connectivity
- lab.jojllman.kura.iotgateway.device",tw.edu.ntust.connectivitylab.jojll
- man.kura.iotgateway.event;version="1.0.0";uses:="tw.edu.ntust.connectiv
- itylab.jojllman.kura.iotgateway.device",tw.edu.ntust.connectivitylab.jo
- jllman.kura.iotgateway;version="1.0.0";uses:="org.osgi.service.componen
- t"
+ cess;uses:="tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.devic
+ e";version="1.0.0",tw.edu.ntust.connectivitylab.jojllman.kura.iotgatewa
+ y.device;uses:="tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.a
+ ccess";version="1.0.0",tw.edu.ntust.connectivitylab.jojllman.kura.iotga
+ teway.device.discovery;uses:="tw.edu.ntust.connectivitylab.jojllman.kur
+ a.iotgateway.device";version="1.0.0",tw.edu.ntust.connectivitylab.jojll
+ man.kura.iotgateway.event;uses:="tw.edu.ntust.connectivitylab.jojllman.
+ kura.iotgateway.device";version="1.0.0",tw.edu.ntust.connectivitylab.jo
+ jllman.kura.iotgateway;uses:="org.osgi.service.component";version="1.0.
+ 0"
 Import-Package: javax.net,javax.net.ssl,javax.security.cert,org.osgi.ser
  vice.component;version="1.2.0",org.slf4j;version="1.6.4"
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.7))"
