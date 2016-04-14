@@ -31,9 +31,11 @@ public class DeviceManager {
 	private Map<Integer, IDeviceProfile> m_pendingProfiles;
 	private AccessControlManager m_access;
 	
-	public DeviceManager(int port) {
+	public DeviceManager() {
 		m_deviceProfiles = new ArrayList<>(); 
 		instance = this;
+
+		s_logger.debug("Device manager started.");
 	}
 	
 	public void setAccessControlManager(AccessControlManager acc) {
@@ -42,7 +44,7 @@ public class DeviceManager {
 	
 	public List<IDeviceProfile> getDeviceProfiles() {
 		synchronized (m_deviceProfiles) {
-			return new ArrayList<IDeviceProfile>(m_deviceProfiles);	
+			return new ArrayList<IDeviceProfile>(m_deviceProfiles);
 		}
 	}
 	

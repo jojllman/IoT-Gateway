@@ -19,7 +19,7 @@ public class EventManager {
 	private DeviceManager deviceManager;
 	
 	public EventManager() {
-		
+		s_logger.debug("Event manager started.");
 	}
 	
 	public void setDeviceManager(DeviceManager deviceManager) {

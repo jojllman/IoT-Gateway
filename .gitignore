@@ -5,6 +5,7 @@
 
 # Package Files #
 *.jar
+!iot-gateway-*.jar
 *.war
 *.ear
 

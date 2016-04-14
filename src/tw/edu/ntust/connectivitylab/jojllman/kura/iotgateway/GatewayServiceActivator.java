@@ -11,13 +11,19 @@ import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.access.AccessControlManager;
+import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device.DeviceManager;
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device.discovery.DeviceDiscovery;
+import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.event.EventManager;
 
 public class GatewayServiceActivator {
 	private static final Logger s_logger = LoggerFactory.getLogger(GatewayServiceActivator.class);
     private static final String APP_ID = "tw.edu.ntust.connectivitylab.jojllman.kura.GatewayServiceActivator";
     
     DeviceDiscovery m_deviceDiscovery;
+	DeviceManager m_deviceManager;
+	AccessControlManager m_accessManager;
+	EventManager m_eventManager;
 
     protected void activate(ComponentContext componentContext) {
 
@@ -112,6 +118,13 @@ public class GatewayServiceActivator {
         }
         
         m_deviceDiscovery = new DeviceDiscovery();
+		m_deviceManager = new DeviceManager();
+		m_accessManager = new AccessControlManager();
+		m_eventManager = new EventManager();
+
+		m_deviceManager.setAccessControlManager(m_accessManager);
+		m_eventManager.setDeviceManager(m_deviceManager);
+
         try {
         	m_deviceDiscovery.startDiscovery();
 		} catch (InterruptedException e) {
@@ -120,15 +133,22 @@ public class GatewayServiceActivator {
     }
 
     protected void deactivate(ComponentContext componentContext) {
-    	
     	m_deviceDiscovery.stopDiscovery();
+		m_deviceDiscovery = null;
+		m_deviceManager = null;
+		m_accessManager = null;
+		m_eventManager = null;
 
         s_logger.info("Bundle " + APP_ID + " has stopped!");
     }
     
     protected void update(ComponentContext componentContext) {
+		m_deviceDiscovery.stopDiscovery();
+		m_deviceDiscovery = null;
+		m_deviceManager = null;
+		m_accessManager = null;
+		m_eventManager = null;
 
         s_logger.info("Bundle " + APP_ID + " has updated!");
-
     }
 }

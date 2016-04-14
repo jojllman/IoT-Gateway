@@ -31,6 +31,8 @@ public class AccessControlManager {
 		m_channelPermissions = new HashMap<>();
 		
 		instance = this;
+
+		s_logger.debug("Access control manager started.");
 	}
 	
 	public boolean registerDevicePermission(IDeviceProfile device, String perm) {
