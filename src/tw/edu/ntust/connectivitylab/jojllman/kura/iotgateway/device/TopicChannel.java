@@ -1,14 +1,30 @@
 package tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device;
 
+import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
+
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.access.Permission;
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device.IDeviceProfile.DataExchangeProtocol;
 
-public class TopicChannel<T> {
+public class TopicChannel<T> implements Runnable {
 	static public enum ChannelDataType {
 		Boolean, Integer, Short, String
 	}
 	static public enum ChannelMode {
 		r,w,o,rw,ow
+	}
+	static public enum ChannelQoS {
+		FireAndForget(0), DeliverAtleastOnce(1),DeliverExactlyOnce(2);
+		private final int mask;
+
+	    private ChannelQoS(int mask)
+	    {
+	        this.mask = mask;
+	    }
+
+	    public int getMask()
+	    {
+	        return mask;
+	    }
 	}
 	
 	private IDeviceProfile device;
@@ -24,6 +40,10 @@ public class TopicChannel<T> {
 	private ChannelMode mode;
 	private String description;
 	private String url;
+	private ChannelQoS qos;
+	
+	private MqttAsyncClient mqttClient;
+	
 	
 	public TopicChannel(ChannelDataType type, String topic, String perm) {
 		this.type = type;
@@ -74,6 +94,8 @@ public class TopicChannel<T> {
 	public String getDescription() { return this.description; }
 	public String setURL(String coapURL) { this.url = coapURL; return this.url; }
 	public String getURL() { return this.url; }
+	public ChannelQoS setQoS(ChannelQoS qos) { this.qos = qos; return this.qos; }
+	public ChannelQoS getQoS() { return this.qos; }
 	public IDeviceProfile setDevice(IDeviceProfile device) { this.device = device; return this.device; }
 	public IDeviceProfile getDevice() { return this.device; }
 	
@@ -87,5 +109,10 @@ public class TopicChannel<T> {
 		}
 		
 		return true;
+	}
+
+	@Override
+	public void run() {
+		
 	}
 }
