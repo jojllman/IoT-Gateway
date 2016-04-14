@@ -1,5 +1,6 @@
 package tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -51,6 +52,7 @@ public class DeviceProfile implements IDeviceProfile{
 			String valueType = obj.getString("Type");
 			String valuePermission = obj.getString("Permission");
 			String valueMode = obj.getString("Mode");
+			String qos = obj.getString("QOS");
 			String valueDescription = obj.getString("Description");
 			String id = AccessControlManager.GetRandomChannelId();
 			TopicChannel<?> ch = null;
