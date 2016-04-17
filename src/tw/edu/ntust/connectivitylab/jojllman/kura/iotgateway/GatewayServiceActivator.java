@@ -34,7 +34,7 @@ public class GatewayServiceActivator {
 	private EventManager m_eventManager;
 	private BundleContext _context;
 	private ServiceTracker _tracker;
-	private final String _path = "/";
+	private final String _path = "/test";
 
     protected void activate(ComponentContext componentContext) {
         s_logger.info("Bundle " + APP_ID + " has started!");
@@ -47,6 +47,7 @@ public class GatewayServiceActivator {
 				new ServiceTrackerCustomizer() {
 					public Object addingService(ServiceReference serviceReference) {
 						try {
+							s_logger.debug(serviceReference.getBundle().getSymbolicName());
 							HttpService service = (HttpService)_context.getService(serviceReference);
 							Dictionary<String, String> initParams = new Hashtable<String, String>();
 							initParams.put("javax.ws.rs.Application", SampleApplication.class.getName());

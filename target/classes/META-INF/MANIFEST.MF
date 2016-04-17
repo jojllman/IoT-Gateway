@@ -1,14 +1,14 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1460885301621
-Build-Jdk: 1.8.0_74
-Built-By: connectivity
+Bnd-LastModified: 1460914221555
+Build-Jdk: 1.8.0_77
+Built-By: jojllman
 Bundle-ClassPath: .,org.eclipse.paho.client.mqttv3-1.0.2.jar,json-201602
  12.jar,netty-all-4.0.35.Final.jar,javaluator-3.0.1.jar,shiro-core-1.2.4
  .jar,slf4j-api-1.6.4.jar,commons-beanutils-1.8.3.jar,cxf-rt-frontend-ja
  xrs-3.0.0-milestone1.jar,cxf-core-3.0.0-milestone1.jar,woodstox-core-as
  l-4.2.0.jar,stax2-api-3.1.1.jar,xmlschema-core-2.0.3.jar,javax.ws.rs-ap
- i-2.0.jar,javax.annotation-api-1.2.jar,cxf-rt-transports-http-3.0.0-mil
- estone1.jar
+ i-2.0.jar,cxf-rt-transports-http-3.0.0-milestone1.jar,javax.annotation-
+ api-1.2.jar,commons-codec-1.10.jar
 Bundle-ManifestVersion: 2
 Bundle-Name: iot-gateway
 Bundle-SymbolicName: tw.edu.ntust.connectivitylab.jojllman.kura.iot-gate
@@ -31,10 +31,21 @@ Embedded-Artifacts: org.eclipse.paho.client.mqttv3-1.0.2.jar;g="org.ecli
  -asl";v="4.2.0",stax2-api-3.1.1.jar;g="org.codehaus.woodstox";a="stax2-
  api";v="3.1.1",xmlschema-core-2.0.3.jar;g="org.apache.ws.xmlschema";a="
  xmlschema-core";v="2.0.3",javax.ws.rs-api-2.0.jar;g="javax.ws.rs";a="ja
- vax.ws.rs-api";v="2.0",javax.annotation-api-1.2.jar;g="javax.annotation
- ";a="javax.annotation-api";v="1.2",cxf-rt-transports-http-3.0.0-milesto
- ne1.jar;g="org.apache.cxf";a="cxf-rt-transports-http";v="3.0.0-mileston
- e1"
+ vax.ws.rs-api";v="2.0",cxf-rt-transports-http-3.0.0-milestone1.jar;g="o
+ rg.apache.cxf";a="cxf-rt-transports-http";v="3.0.0-milestone1",javax.an
+ notation-api-1.2.jar;g="javax.annotation";a="javax.annotation-api";v="1
+ .2",commons-codec-1.10.jar;g="commons-codec";a="commons-codec";v="1.10"
+Export-Package: tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.ac
+ cess;version="1.0.0";uses:="tw.edu.ntust.connectivitylab.jojllman.kura.
+ iotgateway.device",tw.edu.ntust.connectivitylab.jojllman.kura.iotgatewa
+ y.device;version="1.0.0";uses:="tw.edu.ntust.connectivitylab.jojllman.k
+ ura.iotgateway.access",tw.edu.ntust.connectivitylab.jojllman.kura.iotga
+ teway.device.discovery;version="1.0.0";uses:="tw.edu.ntust.connectivity
+ lab.jojllman.kura.iotgateway.device",tw.edu.ntust.connectivitylab.jojll
+ man.kura.iotgateway.event;version="1.0.0";uses:="tw.edu.ntust.connectiv
+ itylab.jojllman.kura.iotgateway.device",tw.edu.ntust.connectivitylab.jo
+ jllman.kura.iotgateway;version="1.0.0";uses:="javax.servlet,org.osgi.se
+ rvice.component"
 Import-Package: javax.net,javax.net.ssl,javax.security.auth,javax.securi
  ty.auth.callback,javax.security.auth.login,javax.security.auth.x500,jav
  ax.security.cert,javax.crypto,javax.crypto.spec,javax.xml.bind,javax.xm
@@ -43,9 +54,11 @@ Import-Package: javax.net,javax.net.ssl,javax.security.auth,javax.securi
  l.stream.events,javax.xml.stream.util,javax.xml.transform,javax.xml.tra
  nsform.dom,javax.xml.transform.sax,javax.xml.transform.stax,javax.xml.t
  ransform.stream,javax.xml.validation,javax.xml.ws,javax.xml.xpath,javax
- .activation,javax.management,javax.naming,javax.servlet,javax.annotatio
- n;version="[1.2,2)",org.apache.commons.codec.binary.Base64,org.osgi.ser
- vice.component;version="1.2.0",org.slf4j;version="1.6.4"
-Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.6))"
+ .activation,javax.management,javax.naming,javax.servlet,javax.servlet.h
+ ttp,org.w3c.dom,org.w3c.dom.ls,org.osgi.framework,org.osgi.service.blue
+ print.container,org.osgi.service.blueprint.reflect,org.osgi.service.cm,
+ org.osgi.service.component,org.osgi.service.http,org.osgi.util.tracker,
+ org.slf4j;version="1.6.4"
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.7))"
 Service-Component: OSGI-INF/component.xml
 Tool: Bnd-3.0.0.201509101326
