@@ -7,7 +7,12 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.http.HttpService;
+import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.util.tracker.ServiceTrackerCustomizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,20 +21,56 @@ import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device.DeviceManage
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device.discovery.DeviceDiscovery;
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.event.EventManager;
 
+import java.util.Dictionary;
+import java.util.Hashtable;
+
 public class GatewayServiceActivator {
 	private static final Logger s_logger = LoggerFactory.getLogger(GatewayServiceActivator.class);
     private static final String APP_ID = "tw.edu.ntust.connectivitylab.jojllman.kura.GatewayServiceActivator";
     
-    DeviceDiscovery m_deviceDiscovery;
-	DeviceManager m_deviceManager;
-	AccessControlManager m_accessManager;
-	EventManager m_eventManager;
+    private DeviceDiscovery m_deviceDiscovery;
+	private DeviceManager m_deviceManager;
+	private AccessControlManager m_accessManager;
+	private EventManager m_eventManager;
+	private BundleContext _context;
+	private ServiceTracker _tracker;
+	private final String _path = "/";
 
     protected void activate(ComponentContext componentContext) {
-
         s_logger.info("Bundle " + APP_ID + " has started!");
-
         s_logger.debug(APP_ID + ": This is a debug message.");
+
+		_context = componentContext.getBundleContext();
+		_tracker = new ServiceTracker(
+				_context,
+				HttpService.class.getName(),
+				new ServiceTrackerCustomizer() {
+					public Object addingService(ServiceReference serviceReference) {
+						try {
+							HttpService service = (HttpService)_context.getService(serviceReference);
+							Dictionary<String, String> initParams = new Hashtable<String, String>();
+							initParams.put("javax.ws.rs.Application", SampleApplication.class.getName());
+							service.registerServlet(_path, new SampleServlet(), initParams, null);
+							return service;
+						} catch (Exception ex) {
+							ex.printStackTrace();
+							throw new RuntimeException(ex);
+						}
+					}
+
+					public void modifiedService(ServiceReference serviceReference, Object o) {
+
+					}
+
+					public void removedService(ServiceReference serviceReference, Object o) {
+						HttpService service = (HttpService)_context.getService(serviceReference);
+						if (service != null) {
+							service.unregister(_path);
+						}
+					}
+				}
+		);
+		_tracker.open();
 
         final String topic        = "MQTT Examples";
         final String content      = "Message from MqttPublishSample";
@@ -133,6 +174,7 @@ public class GatewayServiceActivator {
     }
 
     protected void deactivate(ComponentContext componentContext) {
+		_tracker.remove(_tracker.getServiceReference());
     	m_deviceDiscovery.stopDiscovery();
 		m_deviceDiscovery = null;
 		m_deviceManager = null;

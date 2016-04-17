@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.access.Permission;
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device.IDeviceProfile.DataExchangeProtocol;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
 public class TopicChannel<T> implements Runnable, MqttCallback {
@@ -79,7 +81,20 @@ public class TopicChannel<T> implements Runnable, MqttCallback {
 	}
 	
 	public T getValue() { return obj; }
-	public T setValue(T value) { obj = value; return obj; }
+	public T setValue(T value) {
+		if(protocol == DataExchangeProtocol.MQTT) {
+			try {
+				IMqttDeliveryToken token = mqttClient.publish(topic,
+                        obj.toString().getBytes(StandardCharsets.UTF_8),
+                        qos.getMask(),
+                        true);
+				mqttDeliverQueue.put(token, value);
+			} catch (MqttException e) {
+				e.printStackTrace();
+			}
+		}
+		return obj;
+	}
 	public ChannelDataType getType() { return type; }
 	public ChannelDataType setType(ChannelDataType type) { this.type = type; return type; }
 	public T getMin() { return min; }
@@ -206,7 +221,8 @@ public class TopicChannel<T> implements Runnable, MqttCallback {
 
 	@Override
 	public void deliveryComplete(IMqttDeliveryToken iMqttDeliveryToken) {
-
+		obj = mqttDeliverQueue.get(iMqttDeliveryToken);
+		mqttDeliverQueue.remove(iMqttDeliveryToken);
 	}
 
 }
