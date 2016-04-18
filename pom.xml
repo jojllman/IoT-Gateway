@@ -23,6 +23,7 @@
                         <Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.name}</Bundle-Name>
                         <Bundle-Version>${project.version}</Bundle-Version>
+                        <Export-EJB>ALL</Export-EJB>
                         <Private-Package>tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.*</Private-Package>+
                         <Import-Package>
                             javax.net,
@@ -94,6 +95,15 @@
             <artifactId>commons-codec</artifactId>
             <version>1.10</version>
         </dependency>
-
+        <dependency>
+            <groupId>javax</groupId>
+            <artifactId>javaee-api</artifactId>
+            <version>7.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>javax.json</artifactId>
+            <version>1.0.4</version>
+        </dependency>
     </dependencies>
 </project>

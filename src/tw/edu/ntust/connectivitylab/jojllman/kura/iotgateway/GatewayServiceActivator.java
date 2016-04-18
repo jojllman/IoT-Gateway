@@ -16,6 +16,8 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.REST.RESTApplication;
+import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.REST.RESTServlet;
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.access.AccessControlManager;
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device.DeviceManager;
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device.discovery.DeviceDiscovery;
@@ -34,7 +36,7 @@ public class GatewayServiceActivator {
 	private EventManager m_eventManager;
 	private BundleContext _context;
 	private ServiceTracker _tracker;
-	private final String _path = "/test";
+	private final String _path = "/REST";
 
     protected void activate(ComponentContext componentContext) {
         s_logger.info("Bundle " + APP_ID + " has started!");
@@ -50,8 +52,8 @@ public class GatewayServiceActivator {
 							s_logger.debug(serviceReference.getBundle().getSymbolicName());
 							HttpService service = (HttpService)_context.getService(serviceReference);
 							Dictionary<String, String> initParams = new Hashtable<String, String>();
-							initParams.put("javax.ws.rs.Application", SampleApplication.class.getName());
-							service.registerServlet(_path, new SampleServlet(), initParams, null);
+							initParams.put("javax.ws.rs.Application", RESTApplication.class.getName());
+							service.registerServlet(_path, new RESTServlet(), initParams, null);
 							return service;
 						} catch (Exception ex) {
 							ex.printStackTrace();
@@ -175,6 +177,10 @@ public class GatewayServiceActivator {
     }
 
     protected void deactivate(ComponentContext componentContext) {
+		HttpService service = (HttpService)_context.getService(_context.getServiceReference(HttpService.class.getName()));
+		if (service != null) {
+			service.unregister(_path);
+		}
 		_tracker.remove(_tracker.getServiceReference());
     	m_deviceDiscovery.stopDiscovery();
 		m_deviceDiscovery = null;
