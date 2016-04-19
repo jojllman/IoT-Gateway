@@ -168,6 +168,7 @@ public class GatewayServiceActivator {
 
 		m_deviceManager.setAccessControlManager(m_accessManager);
 		m_eventManager.setDeviceManager(m_deviceManager);
+		m_accessManager.setDeviceManager(m_deviceManager);
 
         try {
         	m_deviceDiscovery.startDiscovery();

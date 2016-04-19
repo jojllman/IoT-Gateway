@@ -7,7 +7,7 @@ public class Permission {
 	private static final Logger s_logger = LoggerFactory.getLogger(Permission.class);
 	
 	static public enum PermissionType {
-		All, Own, Group
+		Own, Group, All
 	}
 	
 	private short perm;

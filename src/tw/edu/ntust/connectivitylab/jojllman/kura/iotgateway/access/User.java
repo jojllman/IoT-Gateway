@@ -43,10 +43,33 @@ public class User {
     }
 
     private String username;
+    private String userId;
     private String password;
+    private Group group;
 
     public User() {
 
     }
 
+    public Group setGroup(Group group) {
+        this.group = group;
+        return this.group;
+    }
+    public Group getGroup() {
+        return  group;
+    }
+    public String setUsername(String name) {
+        this.username = name;
+        return this.username;
+    }
+    public String getUsername() {
+        return this.username;
+    }
+    public String setUserId(String id) {
+        this.userId = id;
+        return this.userId;
+    }
+    public String getUserId() {
+        return this.userId;
+    }
 }

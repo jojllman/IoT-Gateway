@@ -41,13 +41,13 @@ public class DeviceManager {
 	public void setAccessControlManager(AccessControlManager acc) {
 		m_access = acc;
 	}
-	
+
+	public boolean isDeviceExist(IDeviceProfile profile) { return m_deviceProfiles.contains(profile); }
 	public List<IDeviceProfile> getDeviceProfiles() {
 		synchronized (m_deviceProfiles) {
 			return new ArrayList<IDeviceProfile>(m_deviceProfiles);
 		}
 	}
-	
 	private void insertDeviceProfile(IDeviceProfile profile) {
 		m_deviceProfiles.add(profile);
 		s_logger.debug("Insert device profile " + profile);

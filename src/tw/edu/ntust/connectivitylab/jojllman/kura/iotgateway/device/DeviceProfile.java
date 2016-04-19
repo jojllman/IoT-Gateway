@@ -1,6 +1,5 @@
 package tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -105,7 +104,7 @@ public class DeviceProfile implements IDeviceProfile{
 				ch.setDescription(valueDescription);
 				ch.setDevice(profile);
 				profile.addChannel(ch);
-				accessControlManager.registerChanncelPermission(ch, valuePermission);
+				accessControlManager.registerChannelPermission(ch, valuePermission);
 			}
 			
 		}
