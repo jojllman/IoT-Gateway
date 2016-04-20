@@ -72,4 +72,13 @@ public class Group {
     public String getGroupName() {
         return groupName;
     }
+
+    public String getGroupId() {
+        return groupId;
+    }
+
+    public String setGroupId(String groupId) {
+        this.groupId = groupId;
+        return this.groupId;
+    }
 }

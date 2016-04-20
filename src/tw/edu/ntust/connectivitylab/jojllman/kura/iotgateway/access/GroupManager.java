@@ -31,10 +31,13 @@ public class GroupManager {
         }
         return null;
     }
-    public boolean addGroup(Group group) {
-        if(findGroup(group.getGroupName()) != null)
+    public boolean addGroup(String groupName) {
+        if(findGroup(groupName) != null)
             return false;
 
+        Group group = new Group();
+        group.setGroupName(groupName);
+        group.setGroupId(AccessControlManager.GetRandomGroupId());
         groupList.add(group);
         return true;
     }

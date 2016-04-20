@@ -33,10 +33,13 @@ public class UserManager {
         return null;
     }
 
-    public boolean addUser(User user) {
-        if (isUserExist(user.getUsername()))
+    public boolean addUser(String username, String password) {
+        if (isUserExist(username))
             return false;
 
+        User user = new User();
+        user.setUsername(username);
+        user.setUserId(AccessControlManager.GetRandomUserId());
         userList.add(user);
         return true;
     }
