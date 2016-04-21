@@ -48,4 +48,8 @@ public class GroupManager {
         groupList.remove(group);
         return true;
     }
+
+    public List<Group> getAllGroup() {
+        return groupList;
+    }
 }

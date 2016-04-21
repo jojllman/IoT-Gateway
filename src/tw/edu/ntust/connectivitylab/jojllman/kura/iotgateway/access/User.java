@@ -46,9 +46,10 @@ public class User {
     private String userId;
     private String password;
     private Group group;
+    private boolean admin;
 
     public User() {
-
+        admin = false;
     }
 
     public Group setGroup(Group group) {
@@ -65,6 +66,13 @@ public class User {
     public String getUsername() {
         return this.username;
     }
+    public boolean setPassword(String password) {
+        this.password = password;
+        return true;
+    }
+    public boolean isPasswordSame(String password) {
+        return this.password.compareTo(password) == 0;
+    }
     public String setUserId(String id) {
         this.userId = id;
         return this.userId;
@@ -72,4 +80,6 @@ public class User {
     public String getUserId() {
         return this.userId;
     }
+    public void setAdministrator(boolean admin) { this.admin = admin; }
+    public boolean isAdministrator() { return admin; }
 }

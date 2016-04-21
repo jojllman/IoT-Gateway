@@ -39,6 +39,7 @@ public class UserManager {
 
         User user = new User();
         user.setUsername(username);
+        user.setPassword(password);
         user.setUserId(AccessControlManager.GetRandomUserId());
         userList.add(user);
         return true;
@@ -50,5 +51,9 @@ public class UserManager {
 
         userList.remove(user2);
         return true;
+    }
+
+    public List<User> getAllUser() {
+        return userList;
     }
 }

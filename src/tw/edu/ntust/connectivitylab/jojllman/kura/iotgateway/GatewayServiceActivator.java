@@ -19,6 +19,8 @@ import org.slf4j.LoggerFactory;
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.REST.RESTApplication;
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.REST.RESTServlet;
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.access.AccessControlManager;
+import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.access.GroupManager;
+import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.access.UserManager;
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device.DeviceManager;
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device.discovery.DeviceDiscovery;
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.event.EventManager;
@@ -34,6 +36,8 @@ public class GatewayServiceActivator {
 	private DeviceManager m_deviceManager;
 	private AccessControlManager m_accessManager;
 	private EventManager m_eventManager;
+	private GroupManager m_groupManager;
+	private UserManager m_userManager;
 	private BundleContext _context;
 	private ServiceTracker _tracker;
 	private final String _path = "/REST";
@@ -165,10 +169,17 @@ public class GatewayServiceActivator {
 		m_deviceManager = new DeviceManager();
 		m_accessManager = new AccessControlManager();
 		m_eventManager = new EventManager();
+		m_groupManager = new GroupManager();
+		m_userManager = new UserManager();
 
 		m_deviceManager.setAccessControlManager(m_accessManager);
 		m_eventManager.setDeviceManager(m_deviceManager);
 		m_accessManager.setDeviceManager(m_deviceManager);
+
+		m_userManager.addUser("bpi", "123456789");
+		m_userManager.findUser("bpi").setAdministrator(true);
+		m_groupManager.addGroup("admin");
+		m_groupManager.findGroup("admin").addUser(m_userManager.findUser("bpi"));
 
         try {
         	m_deviceDiscovery.startDiscovery();
@@ -188,16 +199,25 @@ public class GatewayServiceActivator {
 		m_deviceManager = null;
 		m_accessManager = null;
 		m_eventManager = null;
+		m_groupManager = null;
+		m_userManager = null;
 
         s_logger.info("Bundle " + APP_ID + " has stopped!");
     }
     
     protected void update(ComponentContext componentContext) {
+		HttpService service = (HttpService)_context.getService(_context.getServiceReference(HttpService.class.getName()));
+		if (service != null) {
+			service.unregister(_path);
+		}
+		_tracker.remove(_tracker.getServiceReference());
 		m_deviceDiscovery.stopDiscovery();
 		m_deviceDiscovery = null;
 		m_deviceManager = null;
 		m_accessManager = null;
 		m_eventManager = null;
+		m_groupManager = null;
+		m_userManager = null;
 
         s_logger.info("Bundle " + APP_ID + " has updated!");
     }

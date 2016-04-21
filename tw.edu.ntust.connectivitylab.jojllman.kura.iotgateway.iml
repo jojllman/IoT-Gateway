@@ -39,6 +39,11 @@
         <jarDirectory url="file://$MODULE_DIR$/../target-definition/equinox_3.8.1/repository/plugins" recursive="false" type="SOURCES" />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="Maven: commons-codec:commons-codec:1.10" level="project" />
+    <orderEntry type="library" name="Maven: javax:javaee-api:7.0" level="project" />
+    <orderEntry type="library" name="Maven: com.sun.mail:javax.mail:1.5.0" level="project" />
+    <orderEntry type="library" name="Maven: javax.activation:activation:1.1" level="project" />
+    <orderEntry type="library" name="Maven: org.glassfish:javax.json:1.0.4" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.0.2" level="project" />
     <orderEntry type="library" name="Maven: org.json:json:20160212" level="project" />
     <orderEntry type="library" name="Maven: io.netty:netty-all:4.0.35.Final" level="project" />
