@@ -87,5 +87,16 @@ public class DeviceManager {
 		
 		m_pendingProfiles.remove(requestID);
 	}
-	
+
+	public TopicChannel findChannelById(String channelId) {
+		for(IDeviceProfile device : m_deviceProfiles) {
+			List<TopicChannel<?>> channels = device.getChannels();
+			for(TopicChannel channel : channels) {
+				if (channel.getId().compareTo(channelId) == 0) {
+					return channel;
+				}
+			}
+		}
+		return null;
+	}
 }

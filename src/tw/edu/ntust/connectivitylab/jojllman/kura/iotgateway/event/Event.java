@@ -70,9 +70,10 @@ public class Event extends AbstractEvaluator<Object> {
 			idx2 = event.indexOf(")");
 		}
 
-		return EventManager.getInstance().geTopicChannels(channelIds);
+		return EventManager.getInstance().getTopicChannels(channelIds);
 	}
 
+	private String eventId;
 	private String eventString;
 	private String ifString;
 	private String thenString;
@@ -249,4 +250,16 @@ public class Event extends AbstractEvaluator<Object> {
 	protected Boolean toValue(String literal, Object evaluationContext) {
 		return Boolean.valueOf(literal);
 	}
+
+	public String setEventId(String id) {
+		this.eventId = id;
+		return this.eventId;
+	}
+
+	public String getEventId() {
+		return this.eventId;
+	}
+
+	public String getIfString() { return this.ifString; }
+	public String getThenString() { return this.eventString; }
 }

@@ -177,9 +177,9 @@ public class GatewayServiceActivator {
 		m_accessManager.setDeviceManager(m_deviceManager);
 
 		m_userManager.addUser("bpi", "123456789");
-		m_userManager.findUser("bpi").setAdministrator(true);
+		m_userManager.findUserByName("bpi").setAdministrator(true);
 		m_groupManager.addGroup("admin");
-		m_groupManager.findGroup("admin").addUser(m_userManager.findUser("bpi"));
+		m_groupManager.findGroup("admin").addUser(m_userManager.findUserByName("bpi"));
 
         try {
         	m_deviceDiscovery.startDiscovery();

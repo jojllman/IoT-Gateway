@@ -30,7 +30,7 @@ public final class Authenticator {
         if ( isServiceKeyValid(serviceKey)
                 && userManager.isUserExist(username) ) {
 
-            if ( userManager.findUser(username).isPasswordSame(password) ) {
+            if ( userManager.findUserByName(username).isPasswordSame(password) ) {
 
                 /**
                  * Once all params are matched, the authToken will be
@@ -99,7 +99,7 @@ public final class Authenticator {
 
     public User getAuthenticatedUser(String serviceKey, String authToken) {
         if(isAuthTokenValid(serviceKey, authToken)) {
-            return userManager.findUser(authorizationTokensStorage.get(authToken));
+            return userManager.findUserByName(authorizationTokensStorage.get(authToken));
         }
         return null;
     }

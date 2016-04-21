@@ -23,10 +23,18 @@ public class UserManager {
     }
 
     public boolean isUserExist(User user) { return userList.contains(user); }
-    public boolean isUserExist(String userName) { return findUser(userName) != null; }
-    public User findUser(String username) {
+    public boolean isUserExist(String userName) { return findUserByName(userName) != null; }
+    public User findUserByName(String username) {
         for(User user : userList) {
             if(user.getUsername().compareToIgnoreCase(username) == 0)
+                return user;
+        }
+
+        return null;
+    }
+    public User findUserById(String userid) {
+        for(User user : userList) {
+            if(user.getUserId().compareToIgnoreCase(userid) == 0)
                 return user;
         }
 
@@ -45,7 +53,7 @@ public class UserManager {
         return true;
     }
     public boolean removeUser(User user) {
-        User user2 = findUser(user.getUsername());
+        User user2 = findUserByName(user.getUsername());
         if (user2 == null)
             return false;
 

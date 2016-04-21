@@ -18,6 +18,7 @@ public class AccessControlManager {
 	private static final SessionIdentifierGenerator s_channelIdGen = new SessionIdentifierGenerator();
 	private static final SessionIdentifierGenerator s_userIdGen = new SessionIdentifierGenerator();
 	private static final SessionIdentifierGenerator s_groupIdGen = new SessionIdentifierGenerator();
+	private static final SessionIdentifierGenerator s_eventIdGen = new SessionIdentifierGenerator();
 	public static String GetRandomDeviceId() {
 		return s_deviceIdGen.nextSessionId();
 	}
@@ -27,9 +28,8 @@ public class AccessControlManager {
 	public static String GetRandomUserId() {
 		return s_userIdGen.nextSessionId();
 	}
-	public static String GetRandomGroupId() {
-		return s_groupIdGen.nextSessionId();
-	}
+	public static String GetRandomGroupId() { return s_groupIdGen.nextSessionId(); }
+	public static String GetRandomEventId() { return s_eventIdGen.nextSessionId(); }
 
 	private DeviceManager m_deviceManager;
 	private Map<String, Permission> m_devicePermissions;
@@ -217,6 +217,8 @@ public class AccessControlManager {
 	}
 
 	public boolean canUserReadDevice(User user, IDeviceProfile device) {
+		if(user.isAdministrator())
+			return true;
 		if(getDeviceOwner(device).getUsername().compareToIgnoreCase(user.getUsername()) == 0) {
 			return getDeviceReadPermission(device, Permission.PermissionType.Own);
 		}
@@ -228,6 +230,8 @@ public class AccessControlManager {
 	}
 
 	public boolean canUserWriteDevice(User user, IDeviceProfile device) {
+		if(user.isAdministrator())
+			return true;
 		if(getDeviceOwner(device).getUsername().compareToIgnoreCase(user.getUsername()) == 0) {
 			return getDeviceWritePermission(device, Permission.PermissionType.Own);
 		}
@@ -239,6 +243,8 @@ public class AccessControlManager {
 	}
 
 	public boolean canUserModifyDevice(User user, IDeviceProfile device) {
+		if(user.isAdministrator())
+			return true;
 		if(getDeviceOwner(device).getUsername().compareToIgnoreCase(user.getUsername()) == 0) {
 			return getDeviceModifyPermission(device, Permission.PermissionType.Own);
 		}
@@ -250,6 +256,8 @@ public class AccessControlManager {
 	}
 
 	public boolean canUserReadChannel(User user, TopicChannel channel) {
+		if(user.isAdministrator())
+			return true;
 		if(getChannelOwner(channel).getUsername().compareToIgnoreCase(user.getUsername()) == 0) {
 			return getChannelReadPermission(channel, Permission.PermissionType.Own);
 		}
@@ -261,6 +269,8 @@ public class AccessControlManager {
 	}
 
 	public boolean canUserWriteChannel(User user, TopicChannel channel) {
+		if(user.isAdministrator())
+			return true;
 		if(getChannelOwner(channel).getUsername().compareToIgnoreCase(user.getUsername()) == 0) {
 			return getChannelWritePermission(channel, Permission.PermissionType.Own);
 		}
@@ -272,6 +282,8 @@ public class AccessControlManager {
 	}
 
 	public boolean canUserModifyChannel(User user, TopicChannel channel) {
+		if(user.isAdministrator())
+			return true;
 		if(getChannelOwner(channel).getUsername().compareToIgnoreCase(user.getUsername()) == 0) {
 			return getChannelModifyPermission(channel, Permission.PermissionType.Own);
 		}

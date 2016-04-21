@@ -1,5 +1,6 @@
 package tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.event;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -7,6 +8,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.access.AccessControlManager;
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device.DeviceManager;
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device.IDeviceProfile;
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device.TopicChannel;
@@ -17,16 +19,19 @@ public class EventManager {
 	public static EventManager getInstance() { return instance; }
 	
 	private DeviceManager deviceManager;
+	private Map<String, List<Event>> userEvents;
 	
 	public EventManager() {
+		userEvents = new HashMap<>();
+
+		instance = this;
 		s_logger.debug("Event manager started.");
 	}
 	
 	public void setDeviceManager(DeviceManager deviceManager) {
 		this.deviceManager = deviceManager;
 	}
-	
-	public Map<String, TopicChannel<?>> geTopicChannels(List<String> channelStrings) {
+	public Map<String, TopicChannel<?>> getTopicChannels(List<String> channelStrings) {
 		Map<String, TopicChannel<?>> map = new HashMap<>();
 		List<IDeviceProfile> profiles = deviceManager.getDeviceProfiles();
 		boolean escape;
@@ -45,10 +50,37 @@ public class EventManager {
 					break;
 			}
 		}
-		
+
 		if(map.size() == 0)
 			return null;
-		
+
 		return map;
+	}
+
+	public String addEvent(String userid, Event event) {
+		List<Event> events = userEvents.get(userid);
+		if(events == null)
+			events = new ArrayList<>();
+
+		event.setEventId(AccessControlManager.GetRandomEventId());
+		events.add(event);
+		return event.getEventId();
+	}
+
+	public boolean removeEvent(String userid, Event event) {
+		List<Event> events = userEvents.get(userid);
+		if(events == null)
+			events = new ArrayList<>();
+
+		events.add(event);
+		return true;
+	}
+
+	public List<Event> getUserEvents(String userid) {
+		return new ArrayList<>(userEvents.get(userid));
+	}
+
+	public Map<String, List<Event>> getAllEvents() {
+		return new HashMap<>(userEvents);
 	}
 }
