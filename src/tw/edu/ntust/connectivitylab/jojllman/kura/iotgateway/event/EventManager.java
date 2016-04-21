@@ -79,6 +79,26 @@ public class EventManager {
 	public List<Event> getUserEvents(String userid) {
 		return new ArrayList<>(userEvents.get(userid));
 	}
+	public Event getUserEvent(String userid, String eventId) {
+		List<Event> events = userEvents.get(userid);
+		for(Event event : events) {
+			if(event.getEventId().compareTo(eventId) == 0)
+				return event;
+		}
+		return null;
+	}
+	public boolean doesUserHasEvent(String userId, String eventId) {
+		List<Event> events = userEvents.get(userId);
+		if(events == null)
+			return false;
+
+		for(Event event : events) {
+			if(event.getEventId().compareTo(eventId) == 0)
+				return true;
+		}
+
+		return false;
+	}
 
 	public Map<String, List<Event>> getAllEvents() {
 		return new HashMap<>(userEvents);

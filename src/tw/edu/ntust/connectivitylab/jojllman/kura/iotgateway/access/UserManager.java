@@ -41,16 +41,16 @@ public class UserManager {
         return null;
     }
 
-    public boolean addUser(String username, String password) {
+    public User addUser(String username, String password) {
         if (isUserExist(username))
-            return false;
+            return null;
 
         User user = new User();
         user.setUsername(username);
         user.setPassword(password);
         user.setUserId(AccessControlManager.GetRandomUserId());
         userList.add(user);
-        return true;
+        return user;
     }
     public boolean removeUser(User user) {
         User user2 = findUserByName(user.getUsername());

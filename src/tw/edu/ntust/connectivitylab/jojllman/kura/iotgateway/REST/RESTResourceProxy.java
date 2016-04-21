@@ -75,67 +75,105 @@ public interface RESTResourceProxy extends Serializable {
     @POST
     @Path("/add-user")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response addUser(@Context HttpHeaders httpHeaders);
+    public Response addUser(@Context HttpHeaders httpHeaders,
+                            @FormParam("user_name") String username,
+                            @FormParam("password") String password);
 
     @POST
     @Path("/remove-user")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response removeUser(@Context HttpHeaders httpHeaders);
+    public Response removeUser(@Context HttpHeaders httpHeaders,
+                               @FormParam("user_id") String userId);
 
     @POST
     @Path("/add-group")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response addGroup(@Context HttpHeaders httpHeaders);
+    public Response addGroup(@Context HttpHeaders httpHeaders,
+                             @FormParam("group_name") String groupName);
 
     @POST
     @Path("/remove-group")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response removeGroup(@Context HttpHeaders httpHeaders);
+    public Response removeGroup(@Context HttpHeaders httpHeaders,
+                                @FormParam("group_id") String groupId);
 
     @POST
     @Path("/set-user-group")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response setUserGroup(@Context HttpHeaders httpHeaders);
+    public Response setUserGroup(@Context HttpHeaders httpHeaders,
+                                 @FormParam("user_id") String userId,
+                                 @FormParam("group_id") String groupId);
+
+    @POST
+    @Path("/get-user-group")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getUserGroup(@Context HttpHeaders httpHeaders,
+                                 @FormParam("user_id") String userId);
 
     @POST
     @Path("/set-device-owner")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response setDeviceOwner(@Context HttpHeaders httpHeaders);
+    public Response setDeviceOwner(@Context HttpHeaders httpHeaders,
+                                   @FormParam("device_id") String deviceId,
+                                   @FormParam("user_id") String userId);
 
-    @GET
+    @POST
     @Path("/get-device-owner")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getDeviceOwner(@Context HttpHeaders httpHeaders);
+    public Response getDeviceOwner(@Context HttpHeaders httpHeaders,
+                                   @FormParam("device_id") String deviceId);
+
+    @POST
+    @Path("/set-device-group")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response setDeviceGroup(@Context HttpHeaders httpHeaders,
+                                   @FormParam("device_id") String deviceId,
+                                   @FormParam("group_id") String groupId);
+
+    @POST
+    @Path("/get-device-group")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getDeviceGroup(@Context HttpHeaders httpHeaders,
+                                   @FormParam("device_id") String deviceId);
 
     @POST
     @Path("/set-channel-owner")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response setChannelOwner(@Context HttpHeaders httpHeaders);
+    public Response setChannelOwner(@Context HttpHeaders httpHeaders,
+                                    @FormParam("channel_id") String channelId,
+                                    @FormParam("user_id") String userId);
 
-    @GET
+    @POST
     @Path("/get-channel-owner")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getChannelOwner(@Context HttpHeaders httpHeaders);
+    public Response getChannelOwner(@Context HttpHeaders httpHeaders,
+                                    @FormParam("channel_id") String channelId);
 
     @POST
     @Path("/set-channel-group")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response setChannelGroup(@Context HttpHeaders httpHeaders);
+    public Response setChannelGroup(@Context HttpHeaders httpHeaders,
+                                    @FormParam("channel_id") String channelId,
+                                    @FormParam("group_id") String groupId);
 
-    @GET
+    @POST
     @Path("/get-channel-group")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getChannelGroup(@Context HttpHeaders httpHeaders);
+    public Response getChannelGroup(@Context HttpHeaders httpHeaders,
+                                    @FormParam("channel_id") String channelId);
 
     @POST
     @Path("/add-event")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response addEvent(@Context HttpHeaders httpHeaders);
+    public Response addEvent(@Context HttpHeaders httpHeaders,
+                             @FormParam("if") String ifString,
+                             @FormParam("then") String thenString);
 
-    @GET
+    @POST
     @Path("/remove-event")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response removeEvent(@Context HttpHeaders httpHeaders);
+    public Response removeEvent(@Context HttpHeaders httpHeaders,
+                                @FormParam("event_id") String eventId);
 
     @POST
     @Path("/logout")

@@ -99,4 +99,13 @@ public class DeviceManager {
 		}
 		return null;
 	}
+
+	public IDeviceProfile findDeviceById(String deviceId) {
+		for(IDeviceProfile device : m_deviceProfiles) {
+			if(device.getId().compareTo(deviceId) == 0) {
+				return device;
+			}
+		}
+		return null;
+	}
 }

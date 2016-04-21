@@ -23,23 +23,30 @@ public class GroupManager {
     }
 
     public boolean isGroupExist(Group group) { return groupList.contains(group); }
-    public boolean isGroupExist(String groupName) { return findGroup(groupName) != null; }
-    public Group findGroup(String groupName) {
+    public boolean isGroupExist(String groupName) { return findGroupByName(groupName) != null; }
+    public Group findGroupById(String groupId) {
+        for(Group group : groupList) {
+            if(group.getGroupId().compareTo(groupId) == 0)
+                return group;
+        }
+        return null;
+    }
+    public Group findGroupByName(String groupName) {
         for(Group group : groupList) {
             if(group.getGroupName().compareToIgnoreCase(groupName) == 0)
                 return group;
         }
         return null;
     }
-    public boolean addGroup(String groupName) {
-        if(findGroup(groupName) != null)
-            return false;
+    public Group addGroup(String groupName) {
+        if(findGroupByName(groupName) != null)
+            return null;
 
         Group group = new Group();
         group.setGroupName(groupName);
         group.setGroupId(AccessControlManager.GetRandomGroupId());
         groupList.add(group);
-        return true;
+        return group;
     }
     public boolean removeGroup(Group group) {
         if(!groupList.contains(group))

@@ -17,6 +17,7 @@ import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.security.auth.login.LoginException;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
@@ -267,11 +268,11 @@ public class RESTResource implements RESTResourceProxy {
         jsonObjBuilder.add("value", channel.getValue().toString());
         JsonObject jsonObj = jsonObjBuilder.build();
 
-        return getNoCacheResponseBuilder(Response.Status.ACCEPTED).entity(jsonObj.toString()).build();
+        return getNoCacheResponseBuilder(Response.Status.OK).entity(jsonObj.toString()).build();
     }
 
     @Override
-    public Response addUser(HttpHeaders httpHeaders) {
+    public Response addUser(HttpHeaders httpHeaders, String username, String password) {
         User caller = Authenticator.getInstance().
                 getAuthenticatedUser(
                         httpHeaders.getHeaderString(HTTPHeaderNames.SERVICE_KEY),
@@ -282,73 +283,347 @@ public class RESTResource implements RESTResourceProxy {
         }
 
         UserManager manager = UserManager.getInstance();
-        manager.addUser();
+        User user = manager.addUser(username, password);
+        if(user != null) {
+            JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
+            jsonObjBuilder.add("message", "user has been added");
+            jsonObjBuilder.add("user_id", user.getUserId());
+            JsonObject jsonObj = jsonObjBuilder.build();
+            return getNoCacheResponseBuilder(Response.Status.ACCEPTED).entity(jsonObj.toString()).build();
+        }
+        return null;
+    }
+
+    @Override
+    public Response removeUser(HttpHeaders httpHeaders, String userId) {
+        return null; //TODO: remove user
+    }
+
+    @Override
+    public Response addGroup(HttpHeaders httpHeaders, String groupName) {
+        User caller = Authenticator.getInstance().
+                getAuthenticatedUser(
+                        httpHeaders.getHeaderString(HTTPHeaderNames.SERVICE_KEY),
+                        httpHeaders.getHeaderString(HTTPHeaderNames.AUTH_TOKEN));
+
+        if(!caller.isAdministrator()) {
+            return null;
+        }
+
+        Group group = GroupManager.getInstance().addGroup(groupName);
+        if(group != null) {
+            JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
+            jsonObjBuilder.add("message", "group has been added");
+            jsonObjBuilder.add("group_id", group.getGroupId());
+            JsonObject jsonObj = jsonObjBuilder.build();
+            return getNoCacheResponseBuilder(Response.Status.ACCEPTED).entity(jsonObj.toString()).build();
+        }
+        return null;
+    }
+
+    @Override
+    public Response removeGroup(HttpHeaders httpHeaders, String groupId) {
+        User caller = Authenticator.getInstance().
+                getAuthenticatedUser(
+                        httpHeaders.getHeaderString(HTTPHeaderNames.SERVICE_KEY),
+                        httpHeaders.getHeaderString(HTTPHeaderNames.AUTH_TOKEN));
+
+        if(!caller.isAdministrator()) {
+            return null;
+        }
+
+        Group group = GroupManager.getInstance().findGroupById(groupId);
+        if(group != null) {
+            GroupManager.getInstance().removeGroup(group);
+            JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
+            jsonObjBuilder.add("message", "group has been removed");
+            JsonObject jsonObj = jsonObjBuilder.build();
+            return getNoCacheResponseBuilder(Response.Status.ACCEPTED).entity(jsonObj.toString()).build();
+        }
+
+        return null;
+    }
+
+    @Override
+    public Response setUserGroup(HttpHeaders httpHeaders, String userId, String groupId) {
+        User caller = Authenticator.getInstance().
+                getAuthenticatedUser(
+                        httpHeaders.getHeaderString(HTTPHeaderNames.SERVICE_KEY),
+                        httpHeaders.getHeaderString(HTTPHeaderNames.AUTH_TOKEN));
+
+        if(!caller.isAdministrator()) {
+            return null;
+        }
+
+        Group group = GroupManager.getInstance().findGroupById(groupId);
+        User user = UserManager.getInstance().findUserById(userId);
+        if(group != null && user != null) {
+            user.setGroup(group);
+            JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
+            jsonObjBuilder.add("message", "user has been set to group");
+            JsonObject jsonObj = jsonObjBuilder.build();
+            return getNoCacheResponseBuilder(Response.Status.ACCEPTED).entity(jsonObj.toString()).build();
+        }
+
+        return null;
+    }
+
+    @Override
+    public Response getUserGroup(HttpHeaders httpHeaders, String userId) {
+        User caller = Authenticator.getInstance().
+                getAuthenticatedUser(
+                        httpHeaders.getHeaderString(HTTPHeaderNames.SERVICE_KEY),
+                        httpHeaders.getHeaderString(HTTPHeaderNames.AUTH_TOKEN));
+
+        if(!caller.isAdministrator()) {
+            return null;
+        }
+
+        User user = UserManager.getInstance().findUserById(userId);
+        Group group = user.getGroup();
+        if(group != null && user != null) {
+            user.setGroup(group);
+            JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
+            jsonObjBuilder.add("message", "user's group is acquired");
+            jsonObjBuilder.add("group_id", group.getGroupId());
+            jsonObjBuilder.add("group_name", group.getGroupName());
+            JsonObject jsonObj = jsonObjBuilder.build();
+            return getNoCacheResponseBuilder(Response.Status.OK).entity(jsonObj.toString()).build();
+        }
+
+        return null;
+    }
+
+    @Override
+    public Response setDeviceOwner(HttpHeaders httpHeaders, String deviceId, String userId) {
+        User caller = Authenticator.getInstance().
+                getAuthenticatedUser(
+                        httpHeaders.getHeaderString(HTTPHeaderNames.SERVICE_KEY),
+                        httpHeaders.getHeaderString(HTTPHeaderNames.AUTH_TOKEN));
+
+        if(!caller.isAdministrator()) {
+            return null;
+        }
+
+        IDeviceProfile device = DeviceManager.getInstance().findDeviceById(deviceId);
+        User user = UserManager.getInstance().findUserById(userId);
+        if(device != null && user != null) {
+            AccessControlManager.getInstance().setDeviceOwner(device, user);
+            JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
+            jsonObjBuilder.add("message", "user has been set to device owner");
+            JsonObject jsonObj = jsonObjBuilder.build();
+            return getNoCacheResponseBuilder(Response.Status.ACCEPTED).entity(jsonObj.toString()).build();
+        }
+
+        return null;
+    }
+
+    @Override
+    public Response getDeviceOwner(HttpHeaders httpHeaders, String deviceId) {
+        User caller = Authenticator.getInstance().
+                getAuthenticatedUser(
+                        httpHeaders.getHeaderString(HTTPHeaderNames.SERVICE_KEY),
+                        httpHeaders.getHeaderString(HTTPHeaderNames.AUTH_TOKEN));
+
+        if(!caller.isAdministrator()) {
+            return null;
+        }
+
+        IDeviceProfile device = DeviceManager.getInstance().findDeviceById(deviceId);
+        User user = AccessControlManager.getInstance().getDeviceOwner(device);
+        if(device != null && user != null) {
+            JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
+            jsonObjBuilder.add("message", "device's owner is acquired");
+            jsonObjBuilder.add("user_id", user.getUserId());
+            jsonObjBuilder.add("user_name", user.getUsername());
+            JsonObject jsonObj = jsonObjBuilder.build();
+            return getNoCacheResponseBuilder(Response.Status.OK).entity(jsonObj.toString()).build();
+        }
+
+        return null;
+    }
+
+    @Override
+    public Response setDeviceGroup(HttpHeaders httpHeaders, String deviceId, String groupId) {
+        User caller = Authenticator.getInstance().
+                getAuthenticatedUser(
+                        httpHeaders.getHeaderString(HTTPHeaderNames.SERVICE_KEY),
+                        httpHeaders.getHeaderString(HTTPHeaderNames.AUTH_TOKEN));
+
+        if(!caller.isAdministrator()) {
+            return null;
+        }
+
+        IDeviceProfile device = DeviceManager.getInstance().findDeviceById(deviceId);
+        Group group = GroupManager.getInstance().findGroupById(groupId);
+        if(device != null && group != null) {
+            AccessControlManager.getInstance().setDeviceGroup(device, group);
+            JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
+            jsonObjBuilder.add("message", "device has been set to group");
+            JsonObject jsonObj = jsonObjBuilder.build();
+            return getNoCacheResponseBuilder(Response.Status.ACCEPTED).entity(jsonObj.toString()).build();
+        }
+
+        return null;
+    }
+
+    @Override
+    public Response getDeviceGroup(HttpHeaders httpHeaders, String deviceId) {
+        User caller = Authenticator.getInstance().
+                getAuthenticatedUser(
+                        httpHeaders.getHeaderString(HTTPHeaderNames.SERVICE_KEY),
+                        httpHeaders.getHeaderString(HTTPHeaderNames.AUTH_TOKEN));
+
+        if(!caller.isAdministrator()) {
+            return null;
+        }
+
+        IDeviceProfile device = DeviceManager.getInstance().findDeviceById(deviceId);
+        Group group = AccessControlManager.getInstance().getDeviceGroup(device);
+        if(device != null && group != null) {
+            JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
+            jsonObjBuilder.add("message", "device's group is acquired");
+            jsonObjBuilder.add("group_id", group.getGroupId());
+            jsonObjBuilder.add("group_name", group.getGroupName());
+            JsonObject jsonObj = jsonObjBuilder.build();
+            return getNoCacheResponseBuilder(Response.Status.OK).entity(jsonObj.toString()).build();
+        }
+
+        return null;
+    }
+
+    @Override
+    public Response setChannelOwner(HttpHeaders httpHeaders, String channelId, String userId) {
+        User caller = Authenticator.getInstance().
+                getAuthenticatedUser(
+                        httpHeaders.getHeaderString(HTTPHeaderNames.SERVICE_KEY),
+                        httpHeaders.getHeaderString(HTTPHeaderNames.AUTH_TOKEN));
+
+        if(!caller.isAdministrator()) {
+            return null;
+        }
+
+        TopicChannel channel = DeviceManager.getInstance().findChannelById(channelId);
+        User user = UserManager.getInstance().findUserById(userId);
+        if(channel != null && user != null) {
+            AccessControlManager.getInstance().setChannelOwner(channel, user);
+            JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
+            jsonObjBuilder.add("message", "user has been set to channel owner");
+            JsonObject jsonObj = jsonObjBuilder.build();
+            return getNoCacheResponseBuilder(Response.Status.ACCEPTED).entity(jsonObj.toString()).build();
+        }
+
+        return null;
+    }
+
+    @Override
+    public Response getChannelOwner(HttpHeaders httpHeaders, String channelId) {
+        User caller = Authenticator.getInstance().
+                getAuthenticatedUser(
+                        httpHeaders.getHeaderString(HTTPHeaderNames.SERVICE_KEY),
+                        httpHeaders.getHeaderString(HTTPHeaderNames.AUTH_TOKEN));
+
+        if(!caller.isAdministrator()) {
+            return null;
+        }
+
+        TopicChannel channel = DeviceManager.getInstance().findChannelById(channelId);
+        User user = AccessControlManager.getInstance().getChannelOwner(channel);
+        if(channel != null && user != null) {
+            JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
+            jsonObjBuilder.add("message", "channel's owner is acquired");
+            jsonObjBuilder.add("user_id", user.getUserId());
+            jsonObjBuilder.add("user_name", user.getUsername());
+            JsonObject jsonObj = jsonObjBuilder.build();
+            return getNoCacheResponseBuilder(Response.Status.OK).entity(jsonObj.toString()).build();
+        }
+
+        return null;
+    }
+
+    @Override
+    public Response setChannelGroup(HttpHeaders httpHeaders, String channelId, String groupId) {
+        User caller = Authenticator.getInstance().
+                getAuthenticatedUser(
+                        httpHeaders.getHeaderString(HTTPHeaderNames.SERVICE_KEY),
+                        httpHeaders.getHeaderString(HTTPHeaderNames.AUTH_TOKEN));
+
+        if(!caller.isAdministrator()) {
+            return null;
+        }
+
+        TopicChannel channel = DeviceManager.getInstance().findChannelById(channelId);
+        Group group = GroupManager.getInstance().findGroupById(groupId);
+        if(channel != null && group != null) {
+            AccessControlManager.getInstance().setChannelGroup(channel, group);
+            JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
+            jsonObjBuilder.add("message", "channel has been set to group");
+            JsonObject jsonObj = jsonObjBuilder.build();
+            return getNoCacheResponseBuilder(Response.Status.ACCEPTED).entity(jsonObj.toString()).build();
+        }
+
+        return null;
+    }
+
+    @Override
+    public Response getChannelGroup(HttpHeaders httpHeaders, String channelId) {
+        User caller = Authenticator.getInstance().
+                getAuthenticatedUser(
+                        httpHeaders.getHeaderString(HTTPHeaderNames.SERVICE_KEY),
+                        httpHeaders.getHeaderString(HTTPHeaderNames.AUTH_TOKEN));
+
+        if(!caller.isAdministrator()) {
+            return null;
+        }
+
+        TopicChannel channel = DeviceManager.getInstance().findChannelById(channelId);
+        Group group = AccessControlManager.getInstance().getChannelGroup(channel);
+        if(channel != null && group != null) {
+            JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
+            jsonObjBuilder.add("message", "channel's group is acquired");
+            jsonObjBuilder.add("group_id", group.getGroupId());
+            jsonObjBuilder.add("group_name", group.getGroupName());
+            JsonObject jsonObj = jsonObjBuilder.build();
+            return getNoCacheResponseBuilder(Response.Status.OK).entity(jsonObj.toString()).build();
+        }
+
+        return null;
+    }
+
+    @Override
+    public Response addEvent(HttpHeaders httpHeaders, String ifString, String thenString) {
+        User caller = Authenticator.getInstance().
+                getAuthenticatedUser(
+                        httpHeaders.getHeaderString(HTTPHeaderNames.SERVICE_KEY),
+                        httpHeaders.getHeaderString(HTTPHeaderNames.AUTH_TOKEN));
+
+        Event event = new Event(ifString, thenString);
+        //TODO: Access control
+        String eventId = EventManager.getInstance().addEvent(caller.getUserId(), event);
 
         JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
-        jsonObjBuilder.add("message", "user has been added");
-        jsonObjBuilder.add("user_name", );
+        jsonObjBuilder.add("message", "event has been added");
+        jsonObjBuilder.add("event_id", eventId);
         JsonObject jsonObj = jsonObjBuilder.build();
-
         return getNoCacheResponseBuilder(Response.Status.ACCEPTED).entity(jsonObj.toString()).build();
     }
 
     @Override
-    public Response removeUser(@Context HttpHeaders httpHeaders) {
-        return null;
-    }
+    public Response removeEvent(HttpHeaders httpHeaders, String eventId) {
+        User caller = Authenticator.getInstance().
+                getAuthenticatedUser(
+                        httpHeaders.getHeaderString(HTTPHeaderNames.SERVICE_KEY),
+                        httpHeaders.getHeaderString(HTTPHeaderNames.AUTH_TOKEN));
 
-    @Override
-    public Response addGroup(@Context HttpHeaders httpHeaders) {
-        return null;
-    }
+        if(EventManager.getInstance().doesUserHasEvent(caller.getUserId(), eventId)) {
+            EventManager.getInstance().removeEvent(caller.getUserId(),
+                    EventManager.getInstance().getUserEvent(caller.getUserId(), eventId));
+            JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
+            jsonObjBuilder.add("message", "event has been removed");
+            JsonObject jsonObj = jsonObjBuilder.build();
+            return getNoCacheResponseBuilder(Response.Status.ACCEPTED).entity(jsonObj.toString()).build();
+        }
 
-    @Override
-    public Response removeGroup(@Context HttpHeaders httpHeaders) {
-        return null;
-    }
-
-    @Override
-    public Response setUserGroup(@Context HttpHeaders httpHeaders) {
-        return null;
-    }
-
-    @Override
-    public Response setDeviceOwner(@Context HttpHeaders httpHeaders) {
-        return null;
-    }
-
-    @Override
-    public Response getDeviceOwner(@Context HttpHeaders httpHeaders) {
-        return null;
-    }
-
-    @Override
-    public Response setChannelOwner(@Context HttpHeaders httpHeaders) {
-        return null;
-    }
-
-    @Override
-    public Response getChannelOwner(@Context HttpHeaders httpHeaders) {
-        return null;
-    }
-
-    @Override
-    public Response setChannelGroup(@Context HttpHeaders httpHeaders) {
-        return null;
-    }
-
-    @Override
-    public Response getChannelGroup(@Context HttpHeaders httpHeaders) {
-        return null;
-    }
-
-    @Override
-    public Response addEvent(@Context HttpHeaders httpHeaders) {
-        return null;
-    }
-
-    @Override
-    public Response removeEvent(@Context HttpHeaders httpHeaders) {
         return null;
     }
 
