@@ -126,22 +126,51 @@ public class RESTResource implements RESTResourceProxy {
                         httpHeaders.getHeaderString(HTTPHeaderNames.SERVICE_KEY),
                         httpHeaders.getHeaderString(HTTPHeaderNames.AUTH_TOKEN));
 
+        JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
+        JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
+        List<IDeviceProfile> devices = DeviceManager.getInstance().getDeviceProfiles();
         if (caller.isAdministrator()) {
-            JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
-            JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
-            List<IDeviceProfile> devices = DeviceManager.getInstance().getDeviceProfiles();
             for (IDeviceProfile device : devices) {
                 jsonArrayBuilder.add(Json.createObjectBuilder()
                         .add("name", device.getName())
                         .add("id", device.getId())
-                .add("", device.getDescription()));
+                .add("description", device.getDescription())
+                .add("type", device.getType().toString())
+                .add("uuid", device.getUUID().toString())
+                .add("protocol", device.getDataExchangeProtocol().toString())
+                .add("channelnum", device.getChannels().size()));
             }
-
-            jsonObjBuilder.add("groups", jsonArrayBuilder);
-            JsonObject jsonObj = jsonObjBuilder.build();
-            return getNoCacheResponseBuilder(Response.Status.OK).entity(jsonObj.toString()).build();
         }
-        return null;
+        else {
+            AccessControlManager accessControlManager = AccessControlManager.getInstance();
+            for (IDeviceProfile device : devices) {
+                boolean access = false;
+                if(accessControlManager.getDeviceOwner(device) == caller) {
+                    if(accessControlManager.getDeviceReadPermission(device, Permission.PermissionType.Own))
+                        access = true;
+                }
+                if(accessControlManager.getDeviceGroup(device) == caller.getGroup()) {
+                    if(accessControlManager.getDeviceReadPermission(device, Permission.PermissionType.Group))
+                        access = true;
+                }
+                if(accessControlManager.getDeviceReadPermission(device, Permission.PermissionType.All))
+                    access = true;
+
+                if(access) {
+                    jsonArrayBuilder.add(Json.createObjectBuilder()
+                            .add("name", device.getName())
+                            .add("id", device.getId())
+                            .add("description", device.getDescription())
+                            .add("type", device.getType().toString())
+                            .add("uuid", device.getUUID().toString())
+                            .add("protocol", device.getDataExchangeProtocol().toString())
+                            .add("channelnum", device.getChannels().size()));
+                }
+            }
+        }
+        jsonObjBuilder.add("devices", jsonArrayBuilder);
+        JsonObject jsonObj = jsonObjBuilder.build();
+        return getNoCacheResponseBuilder(Response.Status.OK).entity(jsonObj.toString()).build();
     }
 
     @Override

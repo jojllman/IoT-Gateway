@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1461130173739
-Build-Jdk: 1.8.0_77
-Built-By: jojllman
+Bnd-LastModified: 1461202667217
+Build-Jdk: 1.8.0_91
+Built-By: connectivitylab
 Bundle-ClassPath: .,org.eclipse.paho.client.mqttv3-1.0.2.jar,json-201602
  12.jar,netty-all-4.0.35.Final.jar,javaluator-3.0.1.jar,shiro-core-1.2.4
  .jar,slf4j-api-1.6.4.jar,commons-beanutils-1.8.3.jar,cxf-rt-frontend-ja
@@ -41,6 +41,17 @@ Embedded-Artifacts: org.eclipse.paho.client.mqttv3-1.0.2.jar;g="org.ecli
  x.activation";a="activation";v="1.1",javax.json-1.0.4.jar;g="org.glassf
  ish";a="javax.json";v="1.0.4"
 Export-EJB: ALL
+Export-Package: tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.ac
+ cess;uses:="tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.devic
+ e";version="1.0.0",tw.edu.ntust.connectivitylab.jojllman.kura.iotgatewa
+ y.device;uses:="tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.a
+ ccess";version="1.0.0",tw.edu.ntust.connectivitylab.jojllman.kura.iotga
+ teway.device.discovery;uses:="tw.edu.ntust.connectivitylab.jojllman.kur
+ a.iotgateway.device";version="1.0.0",tw.edu.ntust.connectivitylab.jojll
+ man.kura.iotgateway.event;uses:="tw.edu.ntust.connectivitylab.jojllman.
+ kura.iotgateway.device";version="1.0.0",tw.edu.ntust.connectivitylab.jo
+ jllman.kura.iotgateway;uses:="org.osgi.service.component";version="1.0.
+ 0"
 Import-Package: javax.net,javax.net.ssl,javax.security.auth,javax.securi
  ty.auth.callback,javax.security.auth.login,javax.security.auth.x500,jav
  ax.security.cert,javax.security.sasl,javax.crypto,javax.crypto.spec,jav
@@ -50,8 +61,8 @@ Import-Package: javax.net,javax.net.ssl,javax.security.auth,javax.securi
  ax.xml.transform.stream,javax.xml.validation,javax.xml.xpath,javax.mana
  gement,javax.naming,org.w3c.dom,org.w3c.dom.ls,org.osgi.framework,org.o
  sgi.service.blueprint.container,org.osgi.service.blueprint.reflect,org.
- osgi.service.cm,org.osgi.util.tracker,javax.activation,javax.servlet,ja
- vax.servlet.http,org.slf4j;version="1.6.4"
+ osgi.service.cm,org.osgi.service.component,org.osgi.util.tracker,javax.
+ activation,javax.servlet,javax.servlet.http,org.slf4j;version="1.6.4"
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.7))"
 Service-Component: OSGI-INF/component.xml
 Tool: Bnd-3.0.0.201509101326
