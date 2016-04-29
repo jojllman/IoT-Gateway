@@ -26,13 +26,13 @@ public class Event extends AbstractEvaluator<Object> {
 	private static final Function SHORTFUNC = new Function("#SHORT$", 1);
 	private static final Function INTEGERFUNC = new Function("#INT$", 1);
 	private static final Function CHANNELFUNC = new Function("#CHANNEL$", 1);
-	private static final Operator ASSIGN = new Operator("=", 2, Operator.Associativity.LEFT, 5);
-	private static final Operator LESSEREQ = new Operator("<=", 1, Operator.Associativity.LEFT, 4);
-	private static final Operator LARGEREQ = new Operator(">=", 1, Operator.Associativity.LEFT, 4);
-	private static final Operator LESSER = new Operator("<", 1, Operator.Associativity.LEFT, 4);
-	private static final Operator LARGER = new Operator(">", 1, Operator.Associativity.LEFT, 4);
-	private static final Operator NEQUAL = new Operator("!=", 1, Operator.Associativity.LEFT, 3);
-	private static final Operator EQUAL = new Operator("==", 1, Operator.Associativity.LEFT, 3);
+	private static final Operator ASSIGN = new Operator("=", 2, Operator.Associativity.LEFT, 3);
+	private static final Operator LESSEREQ = new Operator("<=", 2, Operator.Associativity.LEFT, 4);
+	private static final Operator LARGEREQ = new Operator(">=", 2, Operator.Associativity.LEFT, 4);
+	private static final Operator LESSER = new Operator("<", 2, Operator.Associativity.LEFT, 4);
+	private static final Operator LARGER = new Operator(">", 2, Operator.Associativity.LEFT, 4);
+	private static final Operator NEQUAL = new Operator("!=", 2, Operator.Associativity.LEFT, 3);
+	private static final Operator EQUAL = new Operator("==", 2, Operator.Associativity.LEFT, 3);
 	private static final Operator AND = new Operator("&&", 2, Operator.Associativity.LEFT, 2);
 	private static final Operator OR = new Operator("||", 2, Operator.Associativity.LEFT, 1);
 
@@ -46,11 +46,14 @@ public class Event extends AbstractEvaluator<Object> {
 		PARAMETERS.add(LESSER);
 		PARAMETERS.add(LARGEREQ);
 		PARAMETERS.add(LESSEREQ);
+		PARAMETERS.add(ASSIGN);
 		PARAMETERS.add(BOOLEANFUNC);
 		PARAMETERS.add(STRINGFUNC);
 		PARAMETERS.add(SHORTFUNC);
 		PARAMETERS.add(INTEGERFUNC);
+		PARAMETERS.add(CHANNELFUNC);
 		PARAMETERS.addExpressionBracket(BracketPair.PARENTHESES);
+		PARAMETERS.addFunctionBracket(BracketPair.PARENTHESES);
 	}
 
 	private static Map<String, TopicChannel<?>> ParseEvent(String event) {
@@ -59,7 +62,8 @@ public class Event extends AbstractEvaluator<Object> {
 		int idx2 = event.indexOf(")");
 
 		while (idx != -1 && idx2 != -1) {
-			channelIds.add(event.substring(idx + 10, idx2 - 1));
+			s_logger.debug(event);
+			channelIds.add(event.substring(idx + 10, idx2));
 			try {
 				event = event.substring(idx2 + 1);
 			} catch (IndexOutOfBoundsException e) {
@@ -67,24 +71,37 @@ public class Event extends AbstractEvaluator<Object> {
 			}
 
 			idx = event.indexOf("#CHANNEL$(");
-			idx2 = event.indexOf(")");
+			if(idx != -1)
+				idx2 = event.indexOf(")", idx);
+			else
+				idx2 = -1;
 		}
 
 		return EventManager.getInstance().getTopicChannels(channelIds);
 	}
 
 	private String eventId;
+	private String eventName;
 	private String eventString;
 	private String ifString;
 	private String thenString;
 	private Map<String, TopicChannel<?>> ifChannels;
 	private Map<String, TopicChannel<?>> thenChannels;
+	private boolean repeat;
+	private int period;
+	private boolean active;
+	protected int timerCount;
 
-	public Event(String ifString, String thenString) {
+	public Event(String name, String ifString, String thenString, boolean repeat, int period) {
 		super(PARAMETERS);
 		this.ifString = ifString;
 		this.thenString = thenString;
 		this.eventString = "If\n" + ifString + "\nThen\n" + thenString;
+		this.eventName = name;
+		this.active = false;
+		this.repeat = repeat;
+		this.period = period;
+		this.timerCount = 0;
 		s_logger.debug("New event rule: " + eventString);
 
 		ifChannels = ParseEvent(ifString);
@@ -95,14 +112,53 @@ public class Event extends AbstractEvaluator<Object> {
 		String eva = new String(ifString);
 		Set<Entry<String, TopicChannel<?>>> entries = ifChannels.entrySet();
 		for (Entry<String, TopicChannel<?>> entry : entries) {
-			eva.replace(entry.getKey(), entry.getValue().getValue().toString());
+			String str;
+			switch (entry.getValue().getType()) {
+				case Boolean:
+					str = "#BOOL";
+					break;
+				case Short:
+					str = "#SHORT";
+					break;
+				case Integer:
+					str = "#INT";
+					break;
+				case String:
+					str = "#STR";
+					break;
+				default:
+					str = "#STR";
+			}
+			Object value = entry.getValue().getValue();
+			if(value == null)
+				return false;
+			
+			eva = eva.replaceFirst("#CHANNEL", str);
+			eva = eva.replaceFirst(entry.getKey(), value.toString());
+			s_logger.debug(str);
+			s_logger.debug(eva);
 		}
 
-		return (Boolean) evaluate(eva);
+		s_logger.debug(eva);
+		try {
+			return (Boolean) evaluate(eva);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
 	}
 
 	public boolean execute() {
-		return (Boolean) evaluate(thenString);
+		s_logger.debug(thenString);
+		String eva = new String(thenString);
+		try {
+			return (Boolean) evaluate(eva);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
 	}
 
 	@Override
@@ -116,7 +172,7 @@ public class Event extends AbstractEvaluator<Object> {
 		} else if (function == INTEGERFUNC) {
 			return Integer.valueOf(arguments.next().toString());
 		} else if (function == CHANNELFUNC) {
-			return thenChannels.get(arguments.toString());
+			return thenChannels.get(arguments.next().toString());
 		}
 
 		return super.evaluate(function, arguments, evaluationContext);
@@ -247,8 +303,9 @@ public class Event extends AbstractEvaluator<Object> {
 	}
 
 	@Override
-	protected Boolean toValue(String literal, Object evaluationContext) {
-		return Boolean.valueOf(literal);
+	protected Object toValue(String literal, Object evaluationContext) {
+		s_logger.debug(literal);
+		return new String(literal);
 	}
 
 	public String setEventId(String id) {
@@ -259,7 +316,27 @@ public class Event extends AbstractEvaluator<Object> {
 	public String getEventId() {
 		return this.eventId;
 	}
+	public String getEventName() {
+		return this.eventName;
+	}
 
 	public String getIfString() { return this.ifString; }
-	public String getThenString() { return this.eventString; }
+	public String getThenString() { return this.thenString; }
+	public void active() {this.active = true;}
+	public void disable() {this.active = false;}
+	public boolean isActive() {return this.active;}
+	public void setRepeat(boolean repeat) {this.repeat = repeat;}
+	public boolean isRepeat() { return this.repeat; }
+	public void setPeriod(int millisec) { if(millisec > 0) this.period = millisec; }
+	public int getPeriod() { return this.period; }
+	protected int decendTimerCount(int dec) {
+		this.timerCount -= dec;
+		if(this.timerCount <= 0) {
+			this.timerCount = period;
+			return 0;
+		}
+		else {
+			return this.timerCount;
+		}
+	}
 }

@@ -50,4 +50,5 @@ public class DeviceDiscovery {
 		
 		s_logger.debug("Discovery server stopped.");
 	}
+
 }

@@ -1,5 +1,7 @@
 package tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.REST;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.access.*;
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device.DeviceManager;
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device.IDeviceProfile;
@@ -26,6 +28,7 @@ import javax.ws.rs.core.Response;
 @Stateless
 public class RESTResource implements RESTResourceProxy {
     private static final long serialVersionUID = -6663599014192066936L;
+    private static final Logger s_logger = LoggerFactory.getLogger(RESTResource.class);
 
     @Override
     public Response login(
@@ -41,6 +44,14 @@ public class RESTResource implements RESTResourceProxy {
 
             JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
             jsonObjBuilder.add("auth_token", authToken);
+            User caller = Authenticator.getInstance().
+                    getAuthenticatedUser(
+                            httpHeaders.getHeaderString(HTTPHeaderNames.SERVICE_KEY),
+                            authToken);
+            if(caller.isAdministrator()) {
+                jsonObjBuilder.add("admin", true);
+                jsonObjBuilder.add("id", caller.getUserId());
+            }
             JsonObject jsonObj = jsonObjBuilder.build();
 
             return getNoCacheResponseBuilder(Response.Status.OK).entity(jsonObj.toString()).build();
@@ -137,6 +148,17 @@ public class RESTResource implements RESTResourceProxy {
         List<IDeviceProfile> devices = DeviceManager.getInstance().getDeviceProfiles();
         if (caller.isAdministrator()) {
             for (IDeviceProfile device : devices) {
+                JsonArrayBuilder channelBuilder = Json.createArrayBuilder();
+                List<TopicChannel<?>> channels = device.getChannels();
+                for(TopicChannel channel : channels) {
+                    channelBuilder.add(Json.createObjectBuilder()
+                            .add("topic", channel.getTopic())
+                            .add("description", channel.getDescription())
+                            .add("value", channel.getValue() == null ? "null" : channel.getValue().toString())
+                            .add("mode", channel.getMode().toString())
+                            .add("type", channel.getType().toString())
+                            .add("id", channel.getId()));
+                }
                 jsonArrayBuilder.add(Json.createObjectBuilder()
                         .add("name", device.getName())
                         .add("id", device.getId())
@@ -144,12 +166,25 @@ public class RESTResource implements RESTResourceProxy {
                         .add("type", device.getType().toString())
                         .add("uuid", device.getUUID().toString())
                         .add("protocol", device.getDataExchangeProtocol().toString())
-                        .add("channel_num", device.getChannels().size()));
+                        .add("channels", channelBuilder));
             }
         } else {
             AccessControlManager accessControlManager = AccessControlManager.getInstance();
             for (IDeviceProfile device : devices) {
                 if (accessControlManager.canUserReadDevice(caller, device)) {
+                    JsonArrayBuilder channelBuilder = Json.createArrayBuilder();
+                    List<TopicChannel<?>> channels = device.getChannels();
+                    for(TopicChannel channel : channels) {
+                        if(accessControlManager.canUserReadChannel(caller, channel)) {
+                            channelBuilder.add(Json.createObjectBuilder()
+                                    .add("topic", channel.getTopic())
+                                    .add("description", channel.getDescription())
+                                    .add("value", channel.getValue() == null ? "null" : channel.getValue().toString())
+                                    .add("mode", channel.getMode().toString())
+                                    .add("type", channel.getType().toString())
+                                    .add("id", channel.getId()));
+                        }
+                    }
                     jsonArrayBuilder.add(Json.createObjectBuilder()
                             .add("name", device.getName())
                             .add("id", device.getId())
@@ -175,10 +210,12 @@ public class RESTResource implements RESTResourceProxy {
 
         JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
         JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
+        s_logger.debug("Query event list");
         if (caller.isAdministrator()) {
             Map<String, List<Event>> userEvents = EventManager.getInstance().getAllEvents();
             Iterator<Map.Entry<String, List<Event>>> it = userEvents.entrySet().iterator();
             while (it.hasNext()) {
+                s_logger.debug("Has events");
                 JsonArrayBuilder eventJsonArrayBuilder = Json.createArrayBuilder();
                 Map.Entry<String, List<Event>> entry = it.next();
                 String userid = entry.getKey();
@@ -186,9 +223,13 @@ public class RESTResource implements RESTResourceProxy {
                 List<Event> events = entry.getValue();
                 for (Event event : events) {
                     eventJsonArrayBuilder.add(Json.createObjectBuilder()
-                            .add("name", event.getEventId())
+                            .add("name", event.getEventName())
+                            .add("id", event.getEventId())
                             .add("if", event.getIfString())
-                            .add("then", event.getThenString()));
+                            .add("then", event.getThenString())
+                            .add("repeat", event.isRepeat())
+                            .add("period", event.getPeriod())
+                            .add("active", event.isActive()));
                 }
                 jsonArrayBuilder.add(Json.createObjectBuilder()
                         .add("user_id", userid)
@@ -245,7 +286,6 @@ public class RESTResource implements RESTResourceProxy {
 
         JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
         jsonObjBuilder.add("message", "value has changed");
-        jsonObjBuilder.add("value", channel.getValue().toString());
         JsonObject jsonObj = jsonObjBuilder.build();
 
         return getNoCacheResponseBuilder(Response.Status.ACCEPTED).entity(jsonObj.toString()).build();
@@ -591,13 +631,30 @@ public class RESTResource implements RESTResourceProxy {
     }
 
     @Override
-    public Response addEvent(HttpHeaders httpHeaders, String ifString, String thenString) {
+    public Response addEvent(HttpHeaders httpHeaders,
+                             String eventName,
+                             String ifString,
+                             String thenString,
+                             String repeat,
+                             String period) {
         User caller = Authenticator.getInstance().
                 getAuthenticatedUser(
                         httpHeaders.getHeaderString(HTTPHeaderNames.SERVICE_KEY),
                         httpHeaders.getHeaderString(HTTPHeaderNames.AUTH_TOKEN));
 
-        Event event = new Event(ifString, thenString);
+        boolean repeatVal;
+        if(repeat == null)
+            repeatVal = false;
+        else
+            repeatVal = Boolean.valueOf(repeat);
+
+        int periodVal;
+        if(period == null)
+            periodVal = 1000;
+        else
+            periodVal = Integer.valueOf(period);
+
+        Event event = new Event(eventName, ifString, thenString, repeatVal, periodVal);
         //TODO: Access control
         String eventId = EventManager.getInstance().addEvent(caller.getUserId(), event);
 

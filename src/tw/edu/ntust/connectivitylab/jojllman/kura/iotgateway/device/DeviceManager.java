@@ -1,13 +1,12 @@
 package tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,9 +29,12 @@ public class DeviceManager {
 	private List<IDeviceProfile> m_deviceProfiles;
 	private Map<Integer, IDeviceProfile> m_pendingProfiles;
 	private AccessControlManager m_access;
+	private Random m_rand;
 	
 	public DeviceManager() {
-		m_deviceProfiles = new ArrayList<>(); 
+		m_deviceProfiles = new ArrayList<>();
+		m_pendingProfiles = new HashMap<>();
+		m_rand = new Random();
 		instance = this;
 
 		s_logger.debug("Device manager started.");
@@ -42,6 +44,7 @@ public class DeviceManager {
 		m_access = acc;
 	}
 
+	public boolean isDeviceReady(IDeviceProfile profile) { return isDeviceExist(profile); }
 	public boolean isDeviceExist(IDeviceProfile profile) { return m_deviceProfiles.contains(profile); }
 	public List<IDeviceProfile> getDeviceProfiles() {
 		synchronized (m_deviceProfiles) {
@@ -53,13 +56,16 @@ public class DeviceManager {
 		s_logger.debug("Insert device profile " + profile);
 	}
 	
-	public void onDeviceJoinRequest(DeviceProfile profile) {
+	public void onDeviceJoinRequest(DeviceProfile profile, ChannelHandlerContext ctx) {
 		//TODO: onDeviceJoin
+		int request = m_rand.nextInt();
+		m_pendingProfiles.put(request, profile);
+		onResponseRequest(true, request, ctx);
 	};
 	
-	public void onDeviceConnected(JSONObject json) {
+	public void onDeviceConnected(JSONObject json, ChannelHandlerContext ctx) {
 		DeviceProfile profile = DeviceProfile.parseDeviceAdvertisementMessage(json);
-		onDeviceJoinRequest(profile);
+		onDeviceJoinRequest(profile, ctx);
 	};
 	
 	public void onDeviceDisconnected(IDeviceProfile device) {
@@ -77,15 +83,45 @@ public class DeviceManager {
 				break;
 			}
 		}
+
+		m_access.unregisterDevicePermission(device);
+		List<TopicChannel<?>> channels = device.getChannels();
+		for(TopicChannel channel : channels) {
+			m_access.unregisterChannelPermission(channel);
+			m_access.unsetChannelGroup(channel);
+			m_access.unsetChannelOwner(channel);
+		}
+		m_access.unsetDeviceGroup(device);
+		m_access.unsetDeviceOwner(device);
+
 	};
 	
-	public void onResponseRequest(boolean accept, int requestID) {
-		IDeviceProfile profile = m_pendingProfiles.get(Integer.valueOf(requestID));
+	public void onResponseRequest(boolean accept, int requestID, ChannelHandlerContext ctx) {
+		final IDeviceProfile profile = m_pendingProfiles.get(Integer.valueOf(requestID));
 		
 		if(accept)
 			insertDeviceProfile(profile);
 		
 		m_pendingProfiles.remove(requestID);
+		profile.initialize();
+		try {
+			ByteBuf heapBuffer = ctx.alloc().buffer(4
+					+ profile.getJSONReturn().toString().getBytes().length
+					+ "ACK".getBytes().length);
+			heapBuffer.writeBytes("ACK".getBytes());
+			heapBuffer.writeInt(profile.getJSONReturn().toString().getBytes().length);
+			heapBuffer.writeBytes(profile.getJSONReturn().toString().getBytes());
+			ctx.writeAndFlush(heapBuffer).sync();
+			s_logger.debug("Acked to device");
+//			ctx.channel().closeFuture().addListener(new ChannelFutureListener() {
+//				@Override
+//				public void operationComplete(ChannelFuture channelFuture) throws Exception {
+//					onDeviceDisconnected(profile);
+//				}
+//			});
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public TopicChannel findChannelById(String channelId) {

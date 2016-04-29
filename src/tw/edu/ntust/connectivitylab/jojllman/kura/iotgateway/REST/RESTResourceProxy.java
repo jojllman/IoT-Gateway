@@ -12,7 +12,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-@Path("/demo-business-resource")
+@Path("/gateway")
 public interface RESTResourceProxy extends Serializable {
 
     @POST
@@ -166,8 +166,11 @@ public interface RESTResourceProxy extends Serializable {
     @Path("/add-event")
     @Produces(MediaType.APPLICATION_JSON)
     public Response addEvent(@Context HttpHeaders httpHeaders,
+                             @FormParam("name") String eventName,
                              @FormParam("if") String ifString,
-                             @FormParam("then") String thenString);
+                             @FormParam("then") String thenString,
+                             @FormParam("repeat") String repeat,
+                             @FormParam("period") String period);
 
     @POST
     @Path("/remove-event")

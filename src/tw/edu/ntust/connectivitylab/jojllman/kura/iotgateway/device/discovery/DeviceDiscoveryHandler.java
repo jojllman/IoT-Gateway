@@ -30,7 +30,7 @@ public class DeviceDiscoveryHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
     	JSONObject json = (JSONObject) msg;
-    	deviceManager.onDeviceConnected(json);
+    	deviceManager.onDeviceConnected(json, ctx);
         s_logger.debug(json.toString());
     }
 

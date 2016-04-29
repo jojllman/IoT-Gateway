@@ -42,6 +42,10 @@ public class AccessControlManager {
 	public AccessControlManager() {
 		m_devicePermissions = new HashMap<>();
 		m_channelPermissions = new HashMap<>();
+		m_deviceGroup = new HashMap<>();
+		m_channelGroup = new HashMap<>();
+		m_deviceOwner = new HashMap<>();
+		m_channelOwner = new HashMap<>();
 		
 		instance = this;
 

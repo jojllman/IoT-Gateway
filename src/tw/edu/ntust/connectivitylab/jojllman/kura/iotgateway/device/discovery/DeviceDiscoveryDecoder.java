@@ -13,7 +13,7 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 public class DeviceDiscoveryDecoder extends ByteToMessageDecoder {
 	private static final Logger s_logger = LoggerFactory.getLogger(DeviceDiscoveryDecoder.class);
 	static enum DecodeState {
-			none, decoding
+			none, decoding, acking
 	}
 	static final int BYTES_LENGTH = Integer.SIZE / 8;
 	
@@ -22,25 +22,27 @@ public class DeviceDiscoveryDecoder extends ByteToMessageDecoder {
 	
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
-	    	if(currentState == DecodeState.none) {
-		        if (in.readableBytes() < (BYTES_LENGTH)) {
-		            return;
-		        }
-		        
-		        bodyLength = in.readInt();
-		        currentState = DecodeState.decoding;
-	    	}
-	    	else {
-	    		if (in.readableBytes() < bodyLength) {
-		            return;
-		        }
-	    		
-	    		String parseString = in.readBytes(bodyLength).toString();
-	    		s_logger.debug(parseString);
-	    		JSONObject json = new JSONObject(parseString);
-	    		out.add(json);
-	    		
-	    		currentState = DecodeState.none;
-	    	}
+		if(currentState == DecodeState.none) {
+			if (in.readableBytes() < (BYTES_LENGTH)) {
+				s_logger.debug("Readable bytes: " + in.readableBytes());
+				return;
+			}
+
+			bodyLength = in.readInt();
+			currentState = DecodeState.decoding;
+			s_logger.debug("Length: " + bodyLength);
+		}
+		else if(currentState == DecodeState.decoding) {
+			if (in.readableBytes() < bodyLength) {
+				return;
+			}
+
+			String parseString = new String(in.readBytes(bodyLength).array());
+			s_logger.debug(parseString);
+			JSONObject json = new JSONObject(parseString);
+			out.add(json);
+
+			currentState = DecodeState.none;
+		}
     }
 }

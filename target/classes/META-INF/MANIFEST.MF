@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1461204762002
+Bnd-LastModified: 1461927355077
 Build-Jdk: 1.8.0_74
 Built-By: connectivity
 Bundle-ClassPath: .,org.eclipse.paho.client.mqttv3-1.0.2.jar,json-201602
@@ -52,7 +52,7 @@ Export-Package: tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.ac
  s:="tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device",tw.ed
  u.ntust.connectivitylab.jojllman.kura.iotgateway;version="1.0.0";uses:=
  "org.osgi.service.component",tw.edu.ntust.connectivitylab.jojllman.kura
- .iotgateway.REST;uses:="javax.servlet";version="1.0.0"
+ .iotgateway.REST;version="1.0.0";uses:="javax.servlet"
 Import-Package: javax.net,javax.net.ssl,javax.security.auth,javax.securi
  ty.auth.callback,javax.security.auth.login,javax.security.auth.x500,jav
  ax.security.cert,javax.security.sasl,javax.crypto,javax.crypto.spec,jav

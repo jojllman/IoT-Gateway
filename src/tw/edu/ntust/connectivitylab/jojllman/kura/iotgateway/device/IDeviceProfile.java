@@ -70,4 +70,7 @@ public interface IDeviceProfile {
 	public boolean setControlTopicSecurity(String topic, SecurityLevel security);
 	
 	public List<TopicChannel<?>> getChannels();
+
+	public boolean initialize();
+	public JSONObject getJSONReturn();
 }

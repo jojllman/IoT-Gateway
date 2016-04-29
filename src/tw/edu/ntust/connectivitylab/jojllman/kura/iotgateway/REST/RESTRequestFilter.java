@@ -24,8 +24,13 @@ public class RESTRequestFilter implements ContainerRequestFilter {
 
         // IMPORTANT!!! First, Acknowledge any pre-flight test from browsers for this case before validating the headers (CORS stuff)
         if ( requestCtx.getRequest().getMethod().equals( "OPTIONS" ) ) {
-            requestCtx.abortWith( Response.status( Response.Status.OK ).build() );
-
+            Response response = Response.status(Response.Status.OK)
+                    .header("Access-Control-Allow-Origin", "*")
+                    .header("Access-Control-Allow-Credentials", "true")
+                    .header("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT")
+                    .header("Access-Control-Allow-Headers", HTTPHeaderNames.SERVICE_KEY + ", " + HTTPHeaderNames.AUTH_TOKEN)
+                    .build();
+            requestCtx.abortWith(response);
             return;
         }
 
@@ -41,12 +46,14 @@ public class RESTRequestFilter implements ContainerRequestFilter {
         }
 
         // For any pther methods besides login, the authToken must be verified
-        if ( !path.startsWith( "demo-business-resource/login/" ) ) {
+        if ( !path.startsWith( "gateway/login" ) ) {
             String authToken = requestCtx.getHeaderString( HTTPHeaderNames.AUTH_TOKEN );
             // if it isn't valid, just kick them out.
             if ( !authenticator.isAuthTokenValid( serviceKey, authToken ) ) {
-                log.info("Authorized");
                 requestCtx.abortWith( Response.status( Response.Status.UNAUTHORIZED ).build() );
+            }
+            else {
+                log.info("Authorized");
             }
         }
     }

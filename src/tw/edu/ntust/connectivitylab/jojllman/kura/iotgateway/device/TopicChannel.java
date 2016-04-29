@@ -3,10 +3,12 @@ package tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device;
 import org.eclipse.paho.client.mqttv3.*;
 
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.access.Permission;
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device.IDeviceProfile.DataExchangeProtocol;
+import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.event.EventManager;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -14,7 +16,7 @@ import java.util.HashMap;
 
 public class TopicChannel<T> implements Runnable, MqttCallback {
 	private static final Logger s_logger = LoggerFactory.getLogger(TopicChannel.class);
-	private static final String s_serverURL = "tcp://iot.eclipse.org:1883";
+	private static final String s_serverURL = "tcp://localhost:1883";
 
 	static public enum ChannelDataType {
 		Boolean, Integer, Short, String
@@ -35,6 +37,18 @@ public class TopicChannel<T> implements Runnable, MqttCallback {
 	    {
 	        return mask;
 	    }
+		static public ChannelQoS fromNum(String s) {
+			Integer i = Integer.parseInt(s);
+			if(i == 0) {
+				return FireAndForget;
+			}
+			if(i == 1) {
+				return DeliverAtleastOnce;
+			}
+			else {
+				return DeliverExactlyOnce;
+			}
+		}
 	}
 	
 	private IDeviceProfile device;
@@ -52,9 +66,11 @@ public class TopicChannel<T> implements Runnable, MqttCallback {
 	private String url;
 	private ChannelQoS qos;
 	private DataExchangeProtocol protocol;
+	private JSONObject json;
 	
 	private MqttAsyncClient mqttClient;
 	private HashMap<IMqttDeliveryToken, T> mqttDeliverQueue;
+	private boolean justWrite = false;
 	
 	public TopicChannel(ChannelDataType type, String topic, String perm) {
 		this.type = type;
@@ -83,14 +99,17 @@ public class TopicChannel<T> implements Runnable, MqttCallback {
 	public T getValue() { return obj; }
 	public T setValue(T value) {
 		if(protocol == DataExchangeProtocol.MQTT) {
-			try {
-				IMqttDeliveryToken token = mqttClient.publish(topic,
-                        obj.toString().getBytes(StandardCharsets.UTF_8),
-                        qos.getMask(),
-                        true);
-				mqttDeliverQueue.put(token, value);
-			} catch (MqttException e) {
-				e.printStackTrace();
+			if(mode == ChannelMode.w || mode == ChannelMode.rw) {
+				try {
+					IMqttDeliveryToken token = mqttClient.publish(altTopic,
+							value.toString().getBytes(),
+							qos.getMask(),
+							true);
+					mqttDeliverQueue.put(token, value);
+					s_logger.debug("Send value: " + value);
+				} catch (MqttException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 		return obj;
@@ -144,6 +163,9 @@ public class TopicChannel<T> implements Runnable, MqttCallback {
 					IMqttToken token = mqttClient.connect(connOpts);
 					token.waitForCompletion(10000);
 					mqttClient.setCallback(this);
+					if(mode == ChannelMode.r || mode == ChannelMode.rw) {
+						mqttClient.subscribe(altTopic, qos.getMask());
+					}
 				}
 			} catch (MqttException e) {
 				if (e.getReasonCode() == MqttException.REASON_CODE_CLIENT_TIMEOUT) {
@@ -158,6 +180,7 @@ public class TopicChannel<T> implements Runnable, MqttCallback {
 
 		}
 
+		prepareJsonObject();
 		return true;
 	}
 
@@ -185,7 +208,8 @@ public class TopicChannel<T> implements Runnable, MqttCallback {
 	@Override
 	public void connectionLost(Throwable throwable) {
 		mqttClient = null;
-		s_logger.info("Mqtt connection lost, Topic:" + topic);
+		s_logger.info("Mqtt connection lost, Topic:" + topic + ", Reason:" + throwable.getMessage());
+		throwable.printStackTrace();
 	}
 
 	@Override
@@ -193,22 +217,24 @@ public class TopicChannel<T> implements Runnable, MqttCallback {
 		if(topic.compareToIgnoreCase(altTopic) != 0)
 			return;
 
+		String msg = new String(mqttMessage.getPayload());
+		s_logger.debug("Message arrived: " + msg);
 		T value;
 		switch(type) {
 			case Integer: {
-				value = (T) Integer.valueOf(mqttMessage.getPayload().toString());
+				value = (T) Integer.valueOf(msg);
 				break;
 			}
 			case Boolean: {
-				value = (T) Boolean.valueOf(mqttMessage.getPayload().toString());
+				value = (T) Boolean.valueOf(msg);
 				break;
 			}
 			case Short: {
-				value = (T) Short.valueOf(mqttMessage.getPayload().toString());
+				value = (T) Short.valueOf(msg);
 				break;
 			}
 			case String: {
-				value = (T) mqttMessage.getPayload().toString();
+				value = (T) msg;
 				break;
 			}
 			default:
@@ -216,13 +242,41 @@ public class TopicChannel<T> implements Runnable, MqttCallback {
 				return;
 		}
 
+		if(justWrite) {
+			if(obj != value) {
+				s_logger.error("Write operabtion is interrupted.");
+			}
+			justWrite = false;
+		}
+
 		obj = value;
+		s_logger.debug("Value has changed: " + obj.toString());
+
+		//EventManager.getInstance().evaluateAll();
 	}
 
 	@Override
 	public void deliveryComplete(IMqttDeliveryToken iMqttDeliveryToken) {
 		obj = mqttDeliverQueue.get(iMqttDeliveryToken);
 		mqttDeliverQueue.remove(iMqttDeliveryToken);
+		justWrite = true;
+		s_logger.debug("Delivered value: " + obj.toString());
+
+		//EventManager.getInstance().evaluateAll();
 	}
 
+	public void prepareJsonObject() {
+		JSONObject object = new JSONObject();
+//		object.put("url", "tcp://192.168.1.1");
+//		object.put("port", "1883");
+		object.put("origin_topic", topic);
+		object.put("new_topic", altTopic);
+		object.put("gateway_read_prefix", "_read");
+		object.put("gateway_write_prefix", "_write");
+		this.json = object;
+	}
+
+	public JSONObject getJsonObject() {
+		return this.json;
+	}
 }

@@ -9,6 +9,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.http.HttpService;
 import org.osgi.util.tracker.ServiceTracker;
@@ -42,7 +43,7 @@ public class GatewayServiceActivator {
 	private ServiceTracker _tracker;
 	private final String _path = "/REST";
 
-    protected void activate(ComponentContext componentContext) {
+	protected void activate(ComponentContext componentContext) {
         s_logger.info("Bundle " + APP_ID + " has started!");
         s_logger.debug(APP_ID + ": This is a debug message.");
 
@@ -189,27 +190,19 @@ public class GatewayServiceActivator {
     }
 
     protected void deactivate(ComponentContext componentContext) {
-		HttpService service = (HttpService)_context.getService(_context.getServiceReference(HttpService.class.getName()));
-		if (service != null) {
-			service.unregister(_path);
-		}
-		_tracker.remove(_tracker.getServiceReference());
-    	m_deviceDiscovery.stopDiscovery();
+		m_deviceDiscovery.stopDiscovery();
 		m_deviceDiscovery = null;
 		m_deviceManager = null;
 		m_accessManager = null;
 		m_eventManager = null;
 		m_groupManager = null;
 		m_userManager = null;
+		_tracker.remove(_tracker.getServiceReference());
 
         s_logger.info("Bundle " + APP_ID + " has stopped!");
     }
     
     protected void update(ComponentContext componentContext) {
-		HttpService service = (HttpService)_context.getService(_context.getServiceReference(HttpService.class.getName()));
-		if (service != null) {
-			service.unregister(_path);
-		}
 		_tracker.remove(_tracker.getServiceReference());
 		m_deviceDiscovery.stopDiscovery();
 		m_deviceDiscovery = null;
