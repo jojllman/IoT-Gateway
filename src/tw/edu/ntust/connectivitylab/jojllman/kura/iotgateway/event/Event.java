@@ -132,7 +132,7 @@ public class Event extends AbstractEvaluator<Object> {
 			Object value = entry.getValue().getValue();
 			if(value == null)
 				return false;
-			
+
 			eva = eva.replaceFirst("#CHANNEL", str);
 			eva = eva.replaceFirst(entry.getKey(), value.toString());
 			s_logger.debug(str);

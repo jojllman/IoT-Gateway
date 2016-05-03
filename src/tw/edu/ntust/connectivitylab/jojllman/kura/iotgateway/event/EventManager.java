@@ -157,6 +157,8 @@ public class EventManager {
 	}
 
 	public List<Event> getUserEvents(String userid) {
+		if(userEvents.get(userid) == null)
+			return null;
 		return new ArrayList<>(userEvents.get(userid));
 	}
 	public Event getUserEvent(String userid, String eventId) {
