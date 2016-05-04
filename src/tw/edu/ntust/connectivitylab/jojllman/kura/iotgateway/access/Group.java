@@ -45,6 +45,7 @@ public class Group {
         if(users.contains(user) || containUsername(user.getUsername()))
             return false;
 
+        user.setGroup(this);
         users.add(user);
         return true;
     }
@@ -53,6 +54,7 @@ public class Group {
         if(user == null)
             return false;
 
+        user.setGroup(null);
         users.remove(user);
         return true;
     }
@@ -62,6 +64,10 @@ public class Group {
 
         users.remove(user);
         return true;
+    }
+
+    public List<User> getUsers() {
+        return new ArrayList<>(users);
     }
 
     public String setGroupName(String name) {

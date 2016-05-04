@@ -1,7 +1,6 @@
 package tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.access;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -296,5 +295,26 @@ public class AccessControlManager {
 		}
 
 		return getChannelModifyPermission(channel, Permission.PermissionType.All);
+	}
+
+	public void onUserRemoved(User user) {
+		List<String> devices = new ArrayList<>();
+		List<String> channels = new ArrayList<>();
+		if(m_deviceOwner.containsValue(user)) {
+			Set<Map.Entry<String, User>> deviceSet = m_deviceOwner.entrySet();
+			for(Map.Entry<String, User> entry : deviceSet) {
+				devices.add(entry.getKey());
+			}
+		}
+		if(m_channelOwner.containsValue(user)) {
+			Set<Map.Entry<String, User>> channelSet = m_channelOwner.entrySet();
+			for(Map.Entry<String, User> entry : channelSet) {
+				channels.add(entry.getKey());
+			}
+		}
+		for(String deviceId : devices)
+			m_deviceOwner.remove(deviceId);
+		for(String channelId : channels)
+			m_channelOwner.remove(channelId);
 	}
 }

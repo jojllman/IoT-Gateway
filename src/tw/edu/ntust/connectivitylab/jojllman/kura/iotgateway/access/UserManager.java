@@ -56,7 +56,7 @@ public class UserManager {
         User user2 = findUserByName(user.getUsername());
         if (user2 == null)
             return false;
-
+        AccessControlManager.getInstance().onUserRemoved(user);
         userList.remove(user2);
         return true;
     }

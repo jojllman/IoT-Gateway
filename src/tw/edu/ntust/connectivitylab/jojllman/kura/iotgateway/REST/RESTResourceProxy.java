@@ -44,6 +44,11 @@ public interface RESTResourceProxy extends Serializable {
     public Response queryGroupList(@Context HttpHeaders httpHeaders);
 
     @GET
+    @Path("/query-group-user-list")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response queryGroupUserList(@Context HttpHeaders httpHeaders);
+
+    @GET
     @Path("/query-channel-list")
     @Produces(MediaType.APPLICATION_JSON)
     public Response queryChannelList(@Context HttpHeaders httpHeaders);
@@ -77,7 +82,8 @@ public interface RESTResourceProxy extends Serializable {
     @Produces(MediaType.APPLICATION_JSON)
     public Response addUser(@Context HttpHeaders httpHeaders,
                             @FormParam("user_name") String username,
-                            @FormParam("password") String password);
+                            @FormParam("password") String password,
+                            @FormParam("group_id") String group_id);
 
     @POST
     @Path("/remove-user")

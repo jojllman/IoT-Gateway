@@ -19,9 +19,7 @@ import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.security.auth.login.LoginException;
-import javax.ws.rs.FormParam;
 import javax.ws.rs.core.CacheControl;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 
@@ -132,6 +130,38 @@ public class RESTResource implements RESTResourceProxy {
     }
 
     @Override
+    public Response queryGroupUserList(HttpHeaders httpHeaders) {
+        User caller = Authenticator.getInstance().
+                getAuthenticatedUser(
+                        httpHeaders.getHeaderString(HTTPHeaderNames.SERVICE_KEY),
+                        httpHeaders.getHeaderString(HTTPHeaderNames.AUTH_TOKEN));
+
+        if (caller.isAdministrator()) {
+            JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
+            JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
+            List<Group> groups = GroupManager.getInstance().getAllGroup();
+            for (Group group : groups) {
+                JsonArrayBuilder userJsonArrayBuilder = Json.createArrayBuilder();
+                List<User> users = group.getUsers();
+                for(User user : users) {
+                    userJsonArrayBuilder.add(Json.createObjectBuilder()
+                            .add("user_name", user.getUsername())
+                            .add("user_id", user.getUserId()));
+                }
+                jsonArrayBuilder.add(Json.createObjectBuilder()
+                        .add("group_name", group.getGroupName())
+                        .add("group_id", group.getGroupId())
+                        .add("users", userJsonArrayBuilder));
+            }
+
+            jsonObjBuilder.add("groups", jsonArrayBuilder);
+            JsonObject jsonObj = jsonObjBuilder.build();
+            return getNoCacheResponseBuilder(Response.Status.OK).entity(jsonObj.toString()).build();
+        }
+        return null;
+    }
+
+    @Override
     public Response queryChannelList(HttpHeaders httpHeaders) {
         return null;
     }
@@ -159,6 +189,7 @@ public class RESTResource implements RESTResourceProxy {
                             .add("type", channel.getType().toString())
                             .add("id", channel.getId()));
                 }
+                User owner = AccessControlManager.getInstance().getDeviceOwner(device);
                 jsonArrayBuilder.add(Json.createObjectBuilder()
                         .add("name", device.getName())
                         .add("id", device.getId())
@@ -166,6 +197,7 @@ public class RESTResource implements RESTResourceProxy {
                         .add("type", device.getType().toString())
                         .add("uuid", device.getUUID().toString())
                         .add("protocol", device.getDataExchangeProtocol().toString())
+                        .add("owner", owner==null?"null" : owner.getUsername())
                         .add("channels", channelBuilder));
             }
         } else {
@@ -185,6 +217,7 @@ public class RESTResource implements RESTResourceProxy {
                                     .add("id", channel.getId()));
                         }
                     }
+                    User owner = AccessControlManager.getInstance().getDeviceOwner(device);
                     jsonArrayBuilder.add(Json.createObjectBuilder()
                             .add("name", device.getName())
                             .add("id", device.getId())
@@ -192,6 +225,7 @@ public class RESTResource implements RESTResourceProxy {
                             .add("type", device.getType().toString())
                             .add("uuid", device.getUUID().toString())
                             .add("protocol", device.getDataExchangeProtocol().toString())
+                            .add("owner", owner==null?"null" : owner.getUsername())
                             .add("channel_num", device.getChannels().size()));
                 }
             }
@@ -312,7 +346,7 @@ public class RESTResource implements RESTResourceProxy {
     }
 
     @Override
-    public Response addUser(HttpHeaders httpHeaders, String username, String password) {
+    public Response addUser(HttpHeaders httpHeaders, String username, String password, String group_id) {
         User caller = Authenticator.getInstance().
                 getAuthenticatedUser(
                         httpHeaders.getHeaderString(HTTPHeaderNames.SERVICE_KEY),
@@ -322,8 +356,12 @@ public class RESTResource implements RESTResourceProxy {
             return null;
         }
 
-        UserManager manager = UserManager.getInstance();
-        User user = manager.addUser(username, password);
+        User user = null;
+        Group group = GroupManager.getInstance().findGroupById(group_id);
+        if(group != null) {
+            user = UserManager.getInstance().addUser(username, password);
+            group.addUser(user);
+        }
         if(user != null) {
             JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
             jsonObjBuilder.add("message", "user has been added");
@@ -420,13 +458,17 @@ public class RESTResource implements RESTResourceProxy {
         }
 
         User user = UserManager.getInstance().findUserById(userId);
-        Group group = user.getGroup();
-        if(group != null && user != null) {
-            user.setGroup(group);
+        List<Group> groups = user.getGroups();
+        if(groups != null && user != null) {
             JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
-            jsonObjBuilder.add("message", "user's group is acquired");
-            jsonObjBuilder.add("group_id", group.getGroupId());
-            jsonObjBuilder.add("group_name", group.getGroupName());
+            JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
+            for(Group group : groups) {
+                jsonArrayBuilder.add(Json.createObjectBuilder()
+                        .add("group_id", group.getGroupId())
+                        .add("group_name", group.getGroupName()));
+            }
+            jsonObjBuilder.add("message", "user's groups are acquired");
+            jsonObjBuilder.add("groups", jsonArrayBuilder);
             JsonObject jsonObj = jsonObjBuilder.build();
             return getNoCacheResponseBuilder(Response.Status.OK).entity(jsonObj.toString()).build();
         }

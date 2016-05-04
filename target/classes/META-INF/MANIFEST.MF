@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1461927355077
-Build-Jdk: 1.8.0_74
-Built-By: connectivity
+Bnd-LastModified: 1462356647415
+Build-Jdk: 1.8.0_77
+Built-By: jojllman
 Bundle-ClassPath: .,org.eclipse.paho.client.mqttv3-1.0.2.jar,json-201602
  12.jar,netty-all-4.0.35.Final.jar,javaluator-3.0.1.jar,shiro-core-1.2.4
  .jar,slf4j-api-1.6.4.jar,commons-beanutils-1.8.3.jar,cxf-rt-frontend-ja
