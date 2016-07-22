@@ -25,6 +25,7 @@ import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.access.UserManager;
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device.DeviceManager;
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device.discovery.DeviceDiscovery;
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.event.EventManager;
+import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.nfc.NFCManager;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -39,6 +40,7 @@ public class GatewayServiceActivator {
 	private EventManager m_eventManager;
 	private GroupManager m_groupManager;
 	private UserManager m_userManager;
+	private NFCManager m_nfcManager;
 	private BundleContext _context;
 	private ServiceTracker _tracker;
 	private final String _path = "/REST";
@@ -172,6 +174,7 @@ public class GatewayServiceActivator {
 		m_eventManager = new EventManager();
 		m_groupManager = new GroupManager();
 		m_userManager = new UserManager();
+		m_nfcManager = new NFCManager("/dev/ttyACM0", 115200);
 
 		m_deviceManager.setAccessControlManager(m_accessManager);
 		m_eventManager.setDeviceManager(m_deviceManager);

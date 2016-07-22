@@ -1,5 +1,6 @@
 package tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device;
 
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.Map.Entry;
 

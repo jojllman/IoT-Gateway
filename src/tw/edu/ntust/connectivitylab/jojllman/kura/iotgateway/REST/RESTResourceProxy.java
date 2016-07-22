@@ -189,4 +189,10 @@ public interface RESTResourceProxy extends Serializable {
     public Response logout(
             @Context HttpHeaders httpHeaders
     );
+
+    @GET
+    @Path("/start-nfc")
+    public Response startNFC(
+            @Context HttpHeaders httpHeaders
+    );
 }

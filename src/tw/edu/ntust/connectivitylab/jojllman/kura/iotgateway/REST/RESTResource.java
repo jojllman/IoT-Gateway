@@ -8,6 +8,7 @@ import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device.IDeviceProfi
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.device.TopicChannel;
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.event.Event;
 import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.event.EventManager;
+import tw.edu.ntust.connectivitylab.jojllman.kura.iotgateway.nfc.NFCManager;
 
 import java.security.GeneralSecurityException;
 import java.util.Iterator;
@@ -27,6 +28,8 @@ import javax.ws.rs.core.Response;
 public class RESTResource implements RESTResourceProxy {
     private static final long serialVersionUID = -6663599014192066936L;
     private static final Logger s_logger = LoggerFactory.getLogger(RESTResource.class);
+
+    private int deviceCount = 0;
 
     @Override
     public Response login(
@@ -190,6 +193,7 @@ public class RESTResource implements RESTResourceProxy {
                             .add("id", channel.getId()));
                 }
                 User owner = AccessControlManager.getInstance().getDeviceOwner(device);
+                Group group = AccessControlManager.getInstance().getDeviceGroup(device);
                 jsonArrayBuilder.add(Json.createObjectBuilder()
                         .add("name", device.getName())
                         .add("id", device.getId())
@@ -198,6 +202,7 @@ public class RESTResource implements RESTResourceProxy {
                         .add("uuid", device.getUUID().toString())
                         .add("protocol", device.getDataExchangeProtocol().toString())
                         .add("owner", owner==null?"null" : owner.getUsername())
+                        .add("group", group==null?"null" : group.getGroupName())
                         .add("channels", channelBuilder));
             }
         } else {
@@ -207,7 +212,8 @@ public class RESTResource implements RESTResourceProxy {
                     JsonArrayBuilder channelBuilder = Json.createArrayBuilder();
                     List<TopicChannel<?>> channels = device.getChannels();
                     for(TopicChannel channel : channels) {
-                        if(accessControlManager.canUserReadChannel(caller, channel)) {
+//                        if(accessControlManager.canUserReadChannel(caller, channel)) {
+                        if(true) {//TODO: Channel permission
                             channelBuilder.add(Json.createObjectBuilder()
                                     .add("topic", channel.getTopic())
                                     .add("description", channel.getDescription())
@@ -218,6 +224,7 @@ public class RESTResource implements RESTResourceProxy {
                         }
                     }
                     User owner = AccessControlManager.getInstance().getDeviceOwner(device);
+                    Group group = AccessControlManager.getInstance().getDeviceGroup(device);
                     jsonArrayBuilder.add(Json.createObjectBuilder()
                             .add("name", device.getName())
                             .add("id", device.getId())
@@ -226,6 +233,7 @@ public class RESTResource implements RESTResourceProxy {
                             .add("uuid", device.getUUID().toString())
                             .add("protocol", device.getDataExchangeProtocol().toString())
                             .add("owner", owner==null?"null" : owner.getUsername())
+                            .add("group", group==null?"null" : group.getGroupName())
                             .add("channel_num", device.getChannels().size()));
                 }
             }
@@ -243,46 +251,17 @@ public class RESTResource implements RESTResourceProxy {
                         httpHeaders.getHeaderString(HTTPHeaderNames.AUTH_TOKEN));
 
         JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
-        JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
-        s_logger.debug("Query event list");
-        if (caller.isAdministrator()) {
-            Map<String, List<Event>> userEvents = EventManager.getInstance().getAllEvents();
-            Iterator<Map.Entry<String, List<Event>>> it = userEvents.entrySet().iterator();
-            while (it.hasNext()) {
-                s_logger.debug("Has events");
-                JsonArrayBuilder eventJsonArrayBuilder = Json.createArrayBuilder();
-                Map.Entry<String, List<Event>> entry = it.next();
-                String userid = entry.getKey();
-                User user = UserManager.getInstance().findUserById(userid);
-                List<Event> events = entry.getValue();
-                for (Event event : events) {
-                    eventJsonArrayBuilder.add(Json.createObjectBuilder()
-                            .add("name", event.getEventName())
-                            .add("id", event.getEventId())
-                            .add("if", event.getIfString())
-                            .add("then", event.getThenString())
-                            .add("repeat", event.isRepeat())
-                            .add("period", event.getPeriod())
-                            .add("active", event.isActive()));
-                }
-                jsonArrayBuilder.add(Json.createObjectBuilder()
-                        .add("user_id", userid)
-                        .add("events", eventJsonArrayBuilder));
-            }
-        } else {
-            List<Event> events = EventManager.getInstance().getUserEvents(caller.getUserId());
-            JsonArrayBuilder eventJsonArrayBuilder = Json.createArrayBuilder();
+        JsonArrayBuilder eventJsonArrayBuilder = Json.createArrayBuilder();
+        List<Event> events = EventManager.getInstance().getUserEvents(caller.getUserId());
+        if(events != null) {
             for (Event event : events) {
                 eventJsonArrayBuilder.add(Json.createObjectBuilder()
                         .add("name", event.getEventId())
                         .add("if", event.getIfString())
                         .add("then", event.getThenString()));
             }
-            jsonArrayBuilder.add(Json.createObjectBuilder()
-                    .add("user_id", caller.getUserId())
-                    .add("events", eventJsonArrayBuilder));
         }
-        jsonObjBuilder.add("user_events", jsonArrayBuilder);
+        jsonObjBuilder.add("user_events", eventJsonArrayBuilder);
         JsonObject jsonObj = jsonObjBuilder.build();
         return getNoCacheResponseBuilder(Response.Status.OK).entity(jsonObj.toString()).build();
     }
@@ -690,11 +669,13 @@ public class RESTResource implements RESTResourceProxy {
         else
             repeatVal = Boolean.valueOf(repeat);
 
-        int periodVal;
-        if(period == null)
-            periodVal = 1000;
-        else
-            periodVal = Integer.valueOf(period);
+        int periodVal = 0;
+        if(repeatVal) {
+            if (period == null)
+                periodVal = 1000;
+            else
+                periodVal = Integer.valueOf(period);
+        }
 
         Event event = new Event(eventName, ifString, thenString, repeatVal, periodVal);
         //TODO: Access control
@@ -742,6 +723,26 @@ public class RESTResource implements RESTResourceProxy {
         }
     }
 
+    @Override
+    public Response startNFC(
+            HttpHeaders httpHeaders) {
+
+        User caller = Authenticator.getInstance().
+                getAuthenticatedUser(
+                        httpHeaders.getHeaderString(HTTPHeaderNames.SERVICE_KEY),
+                        httpHeaders.getHeaderString(HTTPHeaderNames.AUTH_TOKEN));
+
+        if (caller.isAdministrator()) {
+            NFCManager.getInstance().startNFC(genDeviceName(), "ConnLab_BPIM3", "LCCYCH507");
+
+            JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
+            jsonObjBuilder.add("message", "nfc has been started for 10 seconds");
+            JsonObject jsonObj = jsonObjBuilder.build();
+            return getNoCacheResponseBuilder(Response.Status.OK).entity(jsonObj.toString()).build();
+        }
+        return null;
+    }
+
     private Response.ResponseBuilder getNoCacheResponseBuilder(Response.Status status) {
         CacheControl cc = new CacheControl();
         cc.setNoCache(true);
@@ -749,5 +750,9 @@ public class RESTResource implements RESTResourceProxy {
         cc.setMustRevalidate(true);
 
         return Response.status(status).cacheControl(cc);
+    }
+
+    private String genDeviceName() {
+        return "Device_" + (++deviceCount);
     }
 }

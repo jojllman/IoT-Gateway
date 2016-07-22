@@ -66,6 +66,8 @@ public class EventManager {
 					List<Event> events = entry.getValue();
 					for(Event event : events) {
 						try {
+							if(!event.isActive())
+								continue;
 							if (event.decendTimerCount(s_decendCount) == 0) {
 								eventQueue.add(event);
 							}
@@ -86,8 +88,11 @@ public class EventManager {
 						if(e.isActive()) {
 							if(e.evaluate()) {
 								e.execute();
-								if(!e.isRepeat())
+								if(!e.isRepeat()) {
 									e.disable();
+									if(eventQueue.contains(e))
+										eventQueue.remove(e);
+								}
 							}
 						}
 					}

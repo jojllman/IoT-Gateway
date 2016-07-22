@@ -222,79 +222,121 @@ public class AccessControlManager {
 	public boolean canUserReadDevice(User user, IDeviceProfile device) {
 		if(user.isAdministrator())
 			return true;
-		if(getDeviceOwner(device).getUsername().compareToIgnoreCase(user.getUsername()) == 0) {
-			return getDeviceReadPermission(device, Permission.PermissionType.Own);
+
+		boolean a = false;
+		boolean b = false;
+		if(getDeviceOwner(device) != null) {
+			if (getDeviceOwner(device).getUsername().compareToIgnoreCase(user.getUsername()) == 0) {
+				a = getDeviceReadPermission(device, Permission.PermissionType.Own);
+			}
 		}
-		else if(getDeviceGroup(device).containUser(user)) {
-			return getDeviceReadPermission(device, Permission.PermissionType.Group);
+		if(getDeviceGroup(device) != null) {
+			if (getDeviceGroup(device).containUser(user)) {
+				b = getDeviceReadPermission(device, Permission.PermissionType.Group);
+			}
 		}
 
-		return getDeviceReadPermission(device, Permission.PermissionType.All);
+		return getDeviceReadPermission(device, Permission.PermissionType.All) || a || b;
 	}
 
 	public boolean canUserWriteDevice(User user, IDeviceProfile device) {
 		if(user.isAdministrator())
 			return true;
-		if(getDeviceOwner(device).getUsername().compareToIgnoreCase(user.getUsername()) == 0) {
-			return getDeviceWritePermission(device, Permission.PermissionType.Own);
+
+		boolean a = false;
+		boolean b = false;
+		if(getDeviceOwner(device) != null) {
+			if (getDeviceOwner(device).getUsername().compareToIgnoreCase(user.getUsername()) == 0) {
+				a = getDeviceWritePermission(device, Permission.PermissionType.Own);
+			}
 		}
-		else if(getDeviceGroup(device).containUser(user)) {
-			return getDeviceWritePermission(device, Permission.PermissionType.Group);
+		if(getDeviceGroup(device) != null) {
+			if (getDeviceGroup(device).containUser(user)) {
+				b = getDeviceWritePermission(device, Permission.PermissionType.Group);
+			}
 		}
 
-		return getDeviceWritePermission(device, Permission.PermissionType.All);
+		return getDeviceWritePermission(device, Permission.PermissionType.All) || a || b;
 	}
 
 	public boolean canUserModifyDevice(User user, IDeviceProfile device) {
 		if(user.isAdministrator())
 			return true;
-		if(getDeviceOwner(device).getUsername().compareToIgnoreCase(user.getUsername()) == 0) {
-			return getDeviceModifyPermission(device, Permission.PermissionType.Own);
+
+		boolean a = false;
+		boolean b = false;
+		if(getDeviceOwner(device) != null) {
+			if (getDeviceOwner(device).getUsername().compareToIgnoreCase(user.getUsername()) == 0) {
+				a = getDeviceModifyPermission(device, Permission.PermissionType.Own);
+			}
 		}
-		else if(getDeviceGroup(device).containUser(user)) {
-			return getDeviceModifyPermission(device, Permission.PermissionType.Group);
+		if(getDeviceGroup(device) != null) {
+			if (getDeviceGroup(device).containUser(user)) {
+				b = getDeviceModifyPermission(device, Permission.PermissionType.Group);
+			}
 		}
 
-		return getDeviceModifyPermission(device, Permission.PermissionType.All);
+		return getDeviceModifyPermission(device, Permission.PermissionType.All) || a || b;
 	}
 
 	public boolean canUserReadChannel(User user, TopicChannel channel) {
 		if(user.isAdministrator())
 			return true;
-		if(getChannelOwner(channel).getUsername().compareToIgnoreCase(user.getUsername()) == 0) {
-			return getChannelReadPermission(channel, Permission.PermissionType.Own);
+
+		boolean a = false;
+		boolean b = false;
+		if(getChannelOwner(channel) != null) {
+			if (getChannelOwner(channel).getUsername().compareToIgnoreCase(user.getUsername()) == 0) {
+				a = getChannelReadPermission(channel, Permission.PermissionType.Own);
+			}
 		}
-		else if(getChannelGroup(channel).containUser(user)) {
-			return getChannelReadPermission(channel, Permission.PermissionType.Group);
+		if(getChannelGroup(channel) != null) {
+			if (getChannelGroup(channel).containUser(user)) {
+				b = getChannelReadPermission(channel, Permission.PermissionType.Group);
+			}
 		}
 
-		return getChannelReadPermission(channel, Permission.PermissionType.All);
+		return getChannelReadPermission(channel, Permission.PermissionType.All) || a || b;
 	}
 
 	public boolean canUserWriteChannel(User user, TopicChannel channel) {
 		if(user.isAdministrator())
 			return true;
-		if(getChannelOwner(channel).getUsername().compareToIgnoreCase(user.getUsername()) == 0) {
-			return getChannelWritePermission(channel, Permission.PermissionType.Own);
+
+		boolean a = false;
+		boolean b = false;
+		if(getChannelOwner(channel) != null) {
+			if (getChannelOwner(channel).getUsername().compareToIgnoreCase(user.getUsername()) == 0) {
+				a = getChannelWritePermission(channel, Permission.PermissionType.Own);
+			}
 		}
-		else if(getChannelGroup(channel).containUser(user)) {
-			return getChannelWritePermission(channel, Permission.PermissionType.Group);
+		if(getChannelGroup(channel) != null) {
+			if (getChannelGroup(channel).containUser(user)) {
+				b = getChannelWritePermission(channel, Permission.PermissionType.Group);
+			}
 		}
 
-		return getChannelWritePermission(channel, Permission.PermissionType.All);
+		return getChannelWritePermission(channel, Permission.PermissionType.All) || a || b;
 	}
 
 	public boolean canUserModifyChannel(User user, TopicChannel channel) {
 		if(user.isAdministrator())
 			return true;
-		if(getChannelOwner(channel).getUsername().compareToIgnoreCase(user.getUsername()) == 0) {
-			return getChannelModifyPermission(channel, Permission.PermissionType.Own);
+
+		boolean a = false;
+		boolean b = false;
+		if(getChannelOwner(channel) != null) {
+			if (getChannelOwner(channel).getUsername().compareToIgnoreCase(user.getUsername()) == 0) {
+				a = getChannelModifyPermission(channel, Permission.PermissionType.Own);
+			}
 		}
-		else if(getChannelGroup(channel).containUser(user)) {
-			return getChannelModifyPermission(channel, Permission.PermissionType.Group);
+		if(getChannelGroup(channel) != null) {
+			if (getChannelGroup(channel).containUser(user)) {
+				b = getChannelModifyPermission(channel, Permission.PermissionType.Group);
+			}
 		}
 
-		return getChannelModifyPermission(channel, Permission.PermissionType.All);
+		return getChannelModifyPermission(channel, Permission.PermissionType.All) || a || b;
 	}
 
 	public void onUserRemoved(User user) {
